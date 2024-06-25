@@ -24,7 +24,7 @@
                     <div id="locations-container">
                         @foreach(old('locations', $upstream->locations->map(function ($loc) { return ['location' => $loc->location, 'tls' => $loc->tls]; })->toArray()) as $index => $locationData)
                             <div class="input-group mb-2 location-input">
-                                <input type="url" class="form-control @error('locations.' . $index . '.location') is-invalid @enderror" name="locations[{{ $index }}][location]" value="{{ $locationData['location'] }}" placeholder="Location URL">
+                                <input type="text" class="form-control @error('locations.' . $index . '.location') is-invalid @enderror" name="locations[{{ $index }}][location]" value="{{ $locationData['location'] }}" placeholder="Location URL">
                                 <div class="input-group-text">
                                     <input type="hidden" name="locations[{{ $index }}][tls]" value="0">
                                     <input type="checkbox" class="form-check-input ms-2" name="locations[{{ $index }}][tls]" value="1" {{ !empty($locationData['tls']) ? 'checked' : '' }}>
