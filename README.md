@@ -1,4 +1,4 @@
-# rpxy-webui:A Management Webinterface for rust-rpxy
+# rpxy-webui: A Management Webinterface for rust-rpxy
 
 **rpxy-webui** is a web-based management interface designed for the [rust-rpxy](https://github.com/junkurihara/rust-rpxy) project. This interface provides an easy and user-friendly way to manage and configure your proxy servers.
 
