@@ -8,6 +8,7 @@ use App\Models\Upstream;
 use App\Models\LoadbalanceType;
 use App\Models\UpstreamLocation;
 use App\Models\UpstreamOption;
+use App\Services\ConfigGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -61,6 +62,10 @@ class UpstreamController extends Controller
             $upstream->locations()->create(['location' => $location, 'tls' => $request->tls]);
         }
 
+        if (!ConfigGenerator::generateAndSaveConfig()) {
+            return redirect()->back()->with('error', 'Failed to save the configuration file.');
+        }
+
         return redirect()->route('upstream.list', $rustProxy)->with('success', 'Upstream added successfully.');
     }
 
@@ -107,6 +112,10 @@ class UpstreamController extends Controller
 
         $upstream->update($request->only(['tls', 'loadbalance_type_id', 'path', 'replace_path']));
 
+        if (!ConfigGenerator::generateAndSaveConfig()) {
+            return redirect()->back()->with('error', 'Failed to save the configuration file.');
+        }
+
         $upstream->upstreamOptions()->sync($request->options);
 
         // Sync locations
@@ -135,7 +144,7 @@ class UpstreamController extends Controller
             ->whereNotIn('id', $newLocationIds)
             ->delete();
 
-        return redirect()->route('upstream.edit', $upstream->id)->with('success', 'Upstream updated successfully.');
+        return redirect()->route('upstream.list', $upstream->rustProxy)->with('success', 'Upstream updated successfully.');
     }
 
     /**
@@ -151,6 +160,9 @@ class UpstreamController extends Controller
             $additional_success_msg = ' No more upstreams available to this proxy. Resetting default proxy setting.';
         }
 
+        if (!ConfigGenerator::generateAndSaveConfig()) {
+            return redirect()->back()->with('error', 'Failed to save the configuration file.');
+        }
 
         return redirect()->route('upstream.list', $upstream->rustProxy)->with('success', 'Upstream deleted successfully.' . ($additional_success_msg ?? ''));
     }

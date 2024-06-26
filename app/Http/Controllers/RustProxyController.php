@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\RustProxy;
 use App\Models\RustProxySetting;
+use App\Services\ConfigGenerator;
 
 class RustProxyController extends Controller
 {
@@ -54,6 +55,10 @@ class RustProxyController extends Controller
 
         RustProxy::create($request->all());
 
+        if (!ConfigGenerator::generateAndSaveConfig()) {
+            return redirect()->back()->with('error', 'Failed to save the configuration file.');
+        }
+
         return redirect()->route('proxy.index')->with('success', 'Proxy created successfully.');
     }
 
@@ -90,6 +95,10 @@ class RustProxyController extends Controller
 
         $rustProxy->update($request->all());
 
+        if (!ConfigGenerator::generateAndSaveConfig()) {
+            return redirect()->back()->with('error', 'Failed to save the configuration file.');
+        }
+
         return redirect()->route('proxy.index')->with('success', 'Proxy updated successfully.');
     }
 
@@ -104,7 +113,12 @@ class RustProxyController extends Controller
             $additional_success_msg = ' Resetting default proxy setting.';
         }
 
+        $rustProxy->upstreams()->delete();
         $rustProxy->delete();
+
+        if (!ConfigGenerator::generateAndSaveConfig()) {
+            return redirect()->back()->with('error', 'Failed to save the configuration file.');
+        }
 
         return redirect()->route('proxy.index')->with('success', 'Proxy deleted successfully.' . ($additional_success_msg ?? ''));
     }

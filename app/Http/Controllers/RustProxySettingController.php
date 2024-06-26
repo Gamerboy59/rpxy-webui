@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\RustProxy;
 use App\Models\RustProxySetting;
+use App\Services\ConfigGenerator;
 
 class RustProxySettingController extends Controller
 {
@@ -70,6 +71,10 @@ class RustProxySettingController extends Controller
                 'value' => $setting['type'] === 'checkbox' ? ($setting['value'] ?? '0') : $setting['value'],
                 'type' => $setting['type']
             ]);
+        }
+
+        if (!ConfigGenerator::generateAndSaveConfig()) {
+            return redirect()->back()->with('error', 'Failed to save the configuration file.');
         }
 
         return redirect()->route('rustproxysettings')->with('success', 'Settings updated successfully');

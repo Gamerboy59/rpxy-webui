@@ -9,6 +9,11 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+    @endif
 
     <form method="POST" action="{{ route('rustproxysettings.update') }}">
         @csrf
@@ -29,7 +34,14 @@
                         
                     @if($setting->type == 'text' || $setting->type == 'number')
                         <label for="setting-{{ $setting->key }}" class="form-label">{{ $setting->key }}</label>
-                        <input type="{{ $setting->type }}" class="form-control @error('settings.' . $setting->key . '.value') is-invalid @enderror" id="setting-{{ $setting->key }}" name="settings[{{ $setting->key }}][value]" value="{{ old('settings.' . $setting->key . '.value', $setting->value) }}">
+                        @if($setting->key == "config_file_path")
+                        <div class="input-group">
+                            <span class="input-group-text" id="laravel-default-path">{{ storage_path('app') }}&sol;</span>
+                            <input type="{{ $setting->type }}" class="form-control @error('settings.' . $setting->key . '.value') is-invalid @enderror" id="setting-{{ $setting->key }}" name="settings[{{ $setting->key }}][value]" value="{{ old('settings.' . $setting->key . '.value', $setting->value) }}" aria-describedby="laravel-default-path">
+                        </div>
+                        @else
+                            <input type="{{ $setting->type }}" class="form-control @error('settings.' . $setting->key . '.value') is-invalid @enderror" id="setting-{{ $setting->key }}" name="settings[{{ $setting->key }}][value]" value="{{ old('settings.' . $setting->key . '.value', $setting->value) }}">
+                        @endif
                         @error('settings.' . $setting->key . '.value')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
