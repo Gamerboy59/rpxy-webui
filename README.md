@@ -1,10 +1,10 @@
-# rpxy-webui: A Management Webinterface for rust-rpxy
+# rpxy-webui:A Management Webinterface for rust-rpxy
 
 **rpxy-webui** is a web-based management interface designed for the [rust-rpxy](https://github.com/junkurihara/rust-rpxy) project. This interface provides an easy and user-friendly way to manage and configure your proxy servers.
 
 ## Project Overview
 
-The rpxy-webui project aims to offer a comprehensive, intuitive, and responsive web interface for managing rust-rpxy instances. It is built using the Laravel framework, with a Bootstrap 5 frontend for modern and responsive UI components.
+The rpxy-webui project aims to offer a comprehensive, intuitive, and responsive web interface for managing rust-rpxy instances. It is built using the Laravel framework, with a Bootstrap 5 frontend.
 
 ## Features
 
@@ -83,14 +83,21 @@ To install and run rpxy-webui, follow these steps:
 6. **Run Migrations**
    ```bash
    git clone https://github.com/yourusername/rpxy-webui.git
+   cd rpxy-webui
    ```
 
 7. **Seed the Database**
    ```bash
    php artisan db:seed
    ```
+   
+9. **Start rpxy server**
+   ```bash
+   ./target/release/rpxy -w -c /var/www/html/rpxy-webui/storage/app/config.toml
+   ```
+   Make sure to only expose the /public/ path of your laravel webapp to the internet.
 
-8. **Start the Development Server** (optional)
+10. **Start the Development Server** (optional)
    ```bash
    php artisan serve
    ```
@@ -121,6 +128,3 @@ For more information on rust-rpxy, visit the [official repository](https://githu
 ---
 
 Enjoy managing your rust-rpxy proxies with rpxy-webui!
-
-   cd rpxy-webui
-   ```
