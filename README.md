@@ -80,24 +80,18 @@ To install and run rpxy-webui, follow these steps:
    php artisan key:generate
    ```
 
-6. **Run Migrations**
+6. **Run Migrations and seed database**
    ```bash
-   git clone https://github.com/yourusername/rpxy-webui.git
-   cd rpxy-webui
-   ```
-
-7. **Seed the Database**
-   ```bash
-   php artisan db:seed
+   php artisan migrate --seed
    ```
    
-9. **Start rpxy server**
+7. **Start rpxy server**
    ```bash
    ./target/release/rpxy -w -c /var/www/html/rpxy-webui/storage/app/config.toml
    ```
    Make sure to only expose the /public/ path of your laravel webapp to the internet.
 
-10. **Start the Development Server** (optional)
+8. **Start the Development Server** (optional)
    ```bash
    php artisan serve
    ```

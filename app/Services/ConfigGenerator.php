@@ -49,10 +49,10 @@ class ConfigGenerator
                         $setting->value = $defaultRustProxy ? $defaultRustProxy->app_name : 'none';
                     }
                     if($setting->key !== 'config_file_path'){
-                        $configContent .= "{$setting->key} = " . ($setting->type == text ? '"' : '') . "{$setting->value}" . ($setting->type == text ? '"' : '') . "\n";
+                        $configContent .= "{$setting->key} = " . ($setting->type == 'text' ? '"' : '') . "{$setting->value}" . ($setting->type == 'text' ? '"' : '') . "\n";
                     }
                 } else {
-                    $configContent .= "{$setting->key} = " . ($setting->type == text ? '"' : '') . "{$setting->value}" . ($setting->type == text ? '"' : '') . "\n";
+                    $configContent .= "{$setting->key} = " . ($setting->type == 'text' ? '"' : '') . "{$setting->value}" . ($setting->type == 'text' ? '"' : '') . "\n";
                 }
             }
         }
