@@ -41,7 +41,7 @@ class ConfigGenerator
             }
             foreach ($sectionSettings as $setting) {
                 if($setting->type == 'checkbox'){
-                    $setting->value = ($setting->key == '1') ? 'true' : 'false';
+                    $setting->value = ($setting->value == '1') ? 'true' : 'false';
                 }
                 if ($section == 'general') {
                     if($setting->key == 'default_application'){
