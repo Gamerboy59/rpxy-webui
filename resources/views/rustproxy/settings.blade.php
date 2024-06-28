@@ -39,6 +39,7 @@
                             <span class="input-group-text" id="laravel-default-path">{{ storage_path('app') }}&sol;</span>
                             <input type="{{ $setting->type }}" class="form-control @error('settings.' . $setting->key . '.value') is-invalid @enderror" id="setting-{{ $setting->key }}" name="settings[{{ $setting->key }}][value]" value="{{ old('settings.' . $setting->key . '.value', $setting->value) }}" aria-describedby="laravel-default-path">
                         </div>
+                        <p class="ms-1 my-2 text-muted">Start rpxy with: <code>./target/release/rpxy -w -c {{ storage_path('app') }}/{{ old('settings.' . $setting->key . '.value', $setting->value) }}</code></p>
                         @else
                             <input type="{{ $setting->type }}" class="form-control @error('settings.' . $setting->key . '.value') is-invalid @enderror" id="setting-{{ $setting->key }}" name="settings[{{ $setting->key }}][value]" value="{{ old('settings.' . $setting->key . '.value', $setting->value) }}">
                         @endif

@@ -116,10 +116,22 @@ function searchFunction() {
                     <div class="mb-3">
                         <label class="form-label">Locations</label>
                         <div id="locations-container">
-                            <div class="input-group mb-2 location-input">
-                                <input type="text" class="form-control" name="locations[]" placeholder="Location URL">
-                                <button type="button" class="btn btn-danger btn-remove-location ms-2">Remove</button>
-                            </div>
+                            @foreach(old('locations', [['location' => '', 'tls' => '']]) as $index => $locationData)
+                                <div class="input-group mb-2 location-input">
+                                    <input type="text" class="form-control @error('locations.' . $index . '.location') is-invalid @enderror" name="locations[{{ $index }}][location]" placeholder="Location URL" value="{{ old('locations.' . $index . '.location', $locationData['location']) }}">
+                                    <div class="input-group-text">
+                                        <input type="hidden" name="locations[{{ $index }}][tls]" value="0">
+                                        <input type="checkbox" class="form-check-input ms-2" name="locations[{{ $index }}][tls]" value="1" {{ !empty($locationData['tls']) ? 'checked' : '' }}>
+                                        <label class="form-check-label ms-2">TLS</label>
+                                    </div>
+                                    <button type="button" class="btn btn-danger btn-remove-location ms-2">Remove</button>
+                                    @error('locations.' . $index . '.location')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            @endforeach
                         </div>
                         <button type="button" class="btn btn-primary" id="add-location">Add Location</button>
                     </div>
@@ -217,10 +229,16 @@ if (deleteUpstreamModal) {
 
 document.getElementById('add-location').addEventListener('click', function () {
     const container = document.getElementById('locations-container');
+    const index = container.children.length;
     const div = document.createElement('div');
     div.className = 'input-group mb-2 location-input';
     div.innerHTML = `
-        <input type="text" class="form-control" name="locations[]" placeholder="Location URL">
+        <input type="text" class="form-control" name="locations[${index}][location]" placeholder="Location URL">
+        <div class="input-group-text">
+            <input type="hidden" name="locations[${index}][tls]" value="0">
+            <input type="checkbox" class="form-check-input ms-2" name="locations[${index}][tls]" value="1">
+            <label class="form-check-label ms-2">TLS</label>
+        </div>
         <button type="button" class="btn btn-danger btn-remove-location ms-2">Remove</button>
     `;
     container.appendChild(div);
@@ -232,4 +250,14 @@ document.addEventListener('click', function (e) {
     }
 });
 </script>
+@if($errors->has('locations.*') || $errors->has('loadbalance_type_id') || $errors->has('tls') || $errors->has('path') || $errors->has('replace_path'))
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var addUpstreamModal = new Modal(document.getElementById('addUpstreamModal'), {
+        backdrop: 'static'
+    });
+    addUpstreamModal.show();
+});
+</script>
+@endif
 @endsection

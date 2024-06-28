@@ -36,14 +36,23 @@ class ConfigGenerator
         // Settings
         foreach ($settings as $section => $sectionSettings) {
             $configContent .= "### Settings from RustProxySetting\n";
-            if ($section != 'general') {
+            if ($section !== 'general') {
                 $configContent .= "[$section]\n";
             }
             foreach ($sectionSettings as $setting) {
+                if($setting->type == 'checkbox'){
+                    $setting->value = ($setting->key == '1') ? 'true' : 'false';
+                }
                 if ($section == 'general') {
-                    $configContent .= "{$setting->key} = {$setting->value}\n";
+                    if($setting->key == 'default_application'){
+                        $defaultRustProxy = RustProxy::find($setting->value);
+                        $setting->value = $defaultRustProxy ? $defaultRustProxy->app_name : 'none';
+                    }
+                    if($setting->key !== 'config_file_path'){
+                        $configContent .= "{$setting->key} = " . ($setting->type == text ? '"' : '') . "{$setting->value}" . ($setting->type == text ? '"' : '') . "\n";
+                    }
                 } else {
-                    $configContent .= "{$setting->key} = {$setting->value}\n";
+                    $configContent .= "{$setting->key} = " . ($setting->type == text ? '"' : '') . "{$setting->value}" . ($setting->type == text ? '"' : '') . "\n";
                 }
             }
         }

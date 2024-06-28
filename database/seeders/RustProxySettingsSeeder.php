@@ -16,7 +16,7 @@ class RustProxySettingsSeeder extends Seeder
             [
                 'section' => 'general',
                 'key' => 'config_file_path',
-                'value' => '/home/rpxy/config.toml',
+                'value' => 'config.toml',
                 'type' => 'text'
             ],
             [

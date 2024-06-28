@@ -53,7 +53,8 @@ class UpstreamController extends Controller
             'path' => 'nullable|string|required_with:replace_path',
             'replace_path' => 'nullable|string|required_with:path',
             'locations' => 'required|array|min:1',
-            'locations.*' => ['required', 'string', 'max:255', 'regex:/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/']
+            'locations.*.location' => ['required', 'string', 'max:255', 'regex:/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/'],
+            'locations.*.tls' => 'required|boolean'
         ]);
 
         $upstream = $rustProxy->upstreams()->create($request->only(['tls', 'loadbalance_type_id', 'path', 'replace_path']));
@@ -106,8 +107,10 @@ class UpstreamController extends Controller
         ]);
 
         // Custom validation for mutually exclusive options
-        if (in_array('force_http2_upstream', $request->options) && in_array('force_http11_upstream', $request->options)) {
-            return redirect()->back()->withErrors(['options' => 'force_http2_upstream and force_http11_upstream cannot be selected together.']);
+        if (is_array($request->options)){
+            if (in_array('force_http2_upstream', $request->options) && in_array('force_http11_upstream', $request->options)) {
+                return redirect()->back()->withErrors(['options' => 'force_http2_upstream and force_http11_upstream cannot be selected together.']);
+            }
         }
 
         $upstream->update($request->only(['tls', 'loadbalance_type_id', 'path', 'replace_path']));
