@@ -46,7 +46,7 @@ class ConfigGenerator
                 if ($section == 'general') {
                     if($setting->key == 'default_application'){
                         $defaultRustProxy = RustProxy::find($setting->value);
-                        $setting->value = $defaultRustProxy ? $defaultRustProxy->app_name : 'none';
+                        $setting->value = $defaultRustProxy ? '"' . $defaultRustProxy->app_name . '"' : 'none';
                     }
                     if($setting->key !== 'config_file_path'){
                         $configContent .= "{$setting->key} = " . ($setting->type == 'text' ? '"' : '') . "{$setting->value}" . ($setting->type == 'text' ? '"' : '') . "\n";
