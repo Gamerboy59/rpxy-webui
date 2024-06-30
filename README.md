@@ -45,7 +45,7 @@ To install and run rpxy-webui, follow these steps:
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/rpxy-webui.git
+   git clone https://github.com/Gamerboy59/rpxy-webui.git
    cd rpxy-webui
    ```
 2. **Install PHP Dependencies**
