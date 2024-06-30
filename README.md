@@ -50,13 +50,13 @@ To install and run rpxy-webui, follow these steps:
    ```
 2. **Install PHP Dependencies**
    ```bash
-   composer install
+   composer install --no-dev
    ```
 
 3. **Install Node Dependencies**
    ```bash
    npm install
-   npm run dev
+   npm run build
 
    ```
 
@@ -68,7 +68,7 @@ To install and run rpxy-webui, follow these steps:
    ```
    DB_CONNECTION=mysql
    DB_HOST=localhost
-   DB_PORT=3306
+   #DB_PORT=3306
    DB_DATABASE=your_database
    DB_USERNAME=your_username
    DB_PASSWORD=your_password
@@ -89,12 +89,13 @@ To install and run rpxy-webui, follow these steps:
    ```bash
    ./target/release/rpxy -w -c /var/www/html/rpxy-webui/storage/app/config.toml
    ```
-   Make sure to only expose the /public/ path of your laravel webapp to the internet.
+   You should preferably run rpxy in a background process or service unit.
 
 8. **Start the Development Server** (optional)
    ```bash
    php artisan serve
    ```
+   Make sure to only expose the /public/ path of your laravel webapp to the internet.
 
 ## Usage
 
