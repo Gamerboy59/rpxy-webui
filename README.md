@@ -42,10 +42,15 @@ To install and run rpxy-webui using the pre-build packages, follow these steps:
 
    ```bash
    curl -L https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui.tar.gz | tar -xzC /var/www/html/
+   cd /var/www/html/
    ```
    Fix file permissions depending on your system (e.g. `chown -R www-data:www-data /var/www/html/`).  
-   Then move into the directory where the files have been extracted (e.g. `cd /var/www/html`).
    Do not forget to adopt the path in the commands above.
+
+2. **Add empty database file**
+   ```bash
+   touch /var/www/html/database/database.sqlite
+   ```
 
 3. **Generate Application Key**
    ```bash
@@ -62,6 +67,19 @@ To install and run rpxy-webui using the pre-build packages, follow these steps:
    ./target/release/rpxy -w -c /var/www/html/rpxy-webui/storage/app/config.toml
    ```
    You should preferably run rpxy in a background process or service unit.
+
+### Update
+
+1. **Download new files**
+   ```bash
+   curl -L https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui.tar.gz | tar -xzC /var/www/html/
+   cd /var/www/html/
+   ```
+
+2. **Generate Application Key**
+   ```bash
+   php artisan migrate
+   ```
 
 ## Installation (self compile)
 
@@ -85,14 +103,13 @@ To install and run rpxy-webui compiling it yourself, follow these steps:
 
 2. **Install PHP Dependencies**
    ```bash
-   composer install --no-dev
+   composer install
    ```
 
 3. **Install Node Dependencies**
    ```bash
    npm install
    npm run build
-
    ```
 
 4. **Environment Configuration**
@@ -130,6 +147,31 @@ To install and run rpxy-webui compiling it yourself, follow these steps:
    php artisan serve
    ```
    Make sure to only expose the /public/ path of your laravel webapp to the internet.
+
+### Update
+
+1. **Pull changes from Repository**
+
+   ```bash
+   cd /var/www/html/rpxy-webui
+   git pull
+   ```
+
+2. **Update PHP Dependencies**
+   ```bash
+   composer install
+   ```
+
+3. **Update Node Dependencies**
+   ```bash
+   npm upgrade
+   npm run build
+   ```
+
+4. **Run Migrations and seed database**
+   ```bash
+   php artisan migrate
+   ```
 
 ## Contribution
 
