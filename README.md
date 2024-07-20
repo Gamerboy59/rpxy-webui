@@ -29,9 +29,43 @@ The rpxy-webui project aims to offer a comprehensive, intuitive, and responsive 
 
 
 
-## Installation
+## Installation (pre-compiled)
 
-To install and run rpxy-webui, follow these steps:
+To install and run rpxy-webui using the pre-build packages, follow these steps:
+
+### Prerequisites
+
+- **Webserver**: Apache 2.4.x with `mod_rewrite` enabled
+- **PHP**: >= 8.2
+
+1. **Download and extract latest release**
+
+   ```bash
+   curl -L https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui.tar.gz | tar -xzC /var/www/html/
+   ```
+   Fix file permissions depending on your system (e.g. `chown -R www-data:www-data /var/www/html/`).  
+   Then move into the directory where the files have been extracted (e.g. `cd /var/www/html`).
+   Do not forget to adopt the path in the commands above.
+
+3. **Generate Application Key**
+   ```bash
+   php artisan key:generate
+   ```
+
+4. **Run Migrations and seed database**
+   ```bash
+   php artisan migrate --seed
+   ```
+   
+5. **Start rpxy server**
+   ```bash
+   ./target/release/rpxy -w -c /var/www/html/rpxy-webui/storage/app/config.toml
+   ```
+   You should preferably run rpxy in a background process or service unit.
+
+## Installation (self compile)
+
+To install and run rpxy-webui compiling it yourself, follow these steps:
 
 ### Prerequisites
 
@@ -48,6 +82,7 @@ To install and run rpxy-webui, follow these steps:
    git clone https://github.com/Gamerboy59/rpxy-webui.git
    cd rpxy-webui
    ```
+
 2. **Install PHP Dependencies**
    ```bash
    composer install --no-dev
@@ -64,7 +99,7 @@ To install and run rpxy-webui, follow these steps:
    ```bash
    cp .env.example .env
    ```
-   Update at least the following environment variables in the .env file:
+   If you want to use MySQL, update the following environment variables in the .env file:
    ```
    DB_CONNECTION=mysql
    DB_HOST=localhost
@@ -72,7 +107,6 @@ To install and run rpxy-webui, follow these steps:
    DB_DATABASE=your_database
    DB_USERNAME=your_username
    DB_PASSWORD=your_password
-
    ```
 
 5. **Generate Application Key**
@@ -96,13 +130,6 @@ To install and run rpxy-webui, follow these steps:
    php artisan serve
    ```
    Make sure to only expose the /public/ path of your laravel webapp to the internet.
-
-## Usage
-
-- **Dashboard**: View a summary of all proxies and their status.
-- **Proxy Management**: Add, edit, and delete proxies.
-- **Upstream Management**: Add, edit, and delete upstreams for each proxy.
-- **Settings Management**: Configure global settings with validation.
 
 ## Contribution
 
