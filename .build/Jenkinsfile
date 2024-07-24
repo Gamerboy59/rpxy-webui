@@ -68,8 +68,8 @@ pipeline {
                     mkdir -p rpxy-webui-${params.BUILD_VERSION}/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
                     mkdir rpxy-webui-${params.BUILD_VERSION}/conf/
                     tar -xzf rpxy-webui.tar.gz -C rpxy-webui-${params.BUILD_VERSION}/
-                    mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/build/RPM/rpxy-webui.spec rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
-                    rm -R rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/build/
+                    mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/RPM/rpxy-webui.spec rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
+                    rm -R rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/
                     mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/ rpxy-webui-${params.BUILD_VERSION}/data/
                     cat > rpxy-webui-${params.BUILD_VERSION}/conf/apache.conf <<EOF
 Alias /rpxy-webui /var/www/rpxy-webui/public/
@@ -136,9 +136,9 @@ Alias /rpxy-webui /var/www/rpxy-webui/public/
 </Directory>
 EOF
                     mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN
-                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/build/DEB/control rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/control
-                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/build/DEB/postinst rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
-                    rm -R rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/build/
+                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/DEB/control rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/control
+                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/DEB/postinst rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
+                    rm -R rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/
                     chmod 0775 rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
                     mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/usr/share/doc/rpxy-webui
                     ln -s rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/README.md rpxy-webui_${params.BUILD_VERSION}-1_all/usr/share/doc/rpxy-webui/README
