@@ -1,0 +1,153 @@
+pipeline {
+    agent none  // Keine globale Agent-Zuweisung, wir definieren spezifische Agents in den Stages
+    parameters {
+        string(name: 'BUILD_VERSION', defaultValue: '0.1', description: 'Build version for the RPM package')
+    }
+    stages {
+        stage('Preparation') {
+            agent {
+                kubernetes {
+                    inheritFrom 'default'
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    spec:
+                      containers:
+                      - name: alpine-preparation
+                        image: alpine:latest
+                        command:
+                        - cat
+                        tty: true
+                    """
+                }
+            }
+            steps {
+                container('alpine-preparation') {
+                    sh """
+                    apk add --no-cache wget unzip zip composer nodejs npm tar php83 php83-curl php83-iconv php83-mbstring php83-openssl php83-phar php83-zip php83-tokenizer php83-session php83-xml php83-dom php83-xmlreader php83-xmlwriter php83-fileinfo
+                    ln -s /etc/php83/php.ini /etc/php83/conf.d/php.ini
+                    ln -s /etc/php83/php.d/* /etc/php83/conf.d/
+                    wget https://github.com/Gamerboy59/rpxy-webui/archive/refs/heads/main.zip
+                    unzip main.zip
+                    mv rpxy-webui-main rpxy-webui
+                    mv rpxy-webui/.env.example rpxy-webui/.env
+                    cd rpxy-webui
+                    composer install && npm install && npm run build
+                    rm -R node_modules/
+                    cd ..
+                    tar -czf rpxy-webui.tar.gz rpxy-webui
+                    zip -r rpxy-webui.zip rpxy-webui
+                    """
+                }
+                archiveArtifacts artifacts: 'rpxy-webui.tar.gz, rpxy-webui.zip', allowEmptyArchive: true
+                stash includes: 'rpxy-webui.tar.gz', name: 'rpxy-webui-tar'
+            }
+        }
+        stage('Build RPM') {
+            agent {
+                kubernetes {
+                    inheritFrom 'default'
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    spec:
+                      containers:
+                      - name: rpm-builder
+                        image: rockylinux:9
+                        command:
+                        - cat
+                        tty: true
+                    """
+                }
+            }
+            steps {
+                unstash 'rpxy-webui-tar'
+                container('rpm-builder') {
+                    sh """
+                    dnf install -y rpmdevtools tar
+                    mkdir -p rpxy-webui-${params.BUILD_VERSION}/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+                    mkdir rpxy-webui-${params.BUILD_VERSION}/conf/
+                    tar -xzf rpxy-webui.tar.gz -C rpxy-webui-${params.BUILD_VERSION}/
+                    mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/build/RPM/rpxy-webui.spec rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
+                    rm -R rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/build/
+                    mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/ rpxy-webui-${params.BUILD_VERSION}/data/
+                    cat > rpxy-webui-${params.BUILD_VERSION}/conf/apache.conf <<EOF
+Alias /rpxy-webui /var/www/rpxy-webui/public/
+
+<Directory /var/www/rpxy-webui/public/>
+    Options SymLinksIfOwnerMatch
+    DirectoryIndex index.php
+    AllowOverride All
+    Require all granted
+
+    # PHP 8+
+#    <IfModule mod_php.c>
+#        php_admin_value upload_tmp_dir /var/lib/rpxy-webui/tmp/
+#    </IfModule>
+</Directory>
+EOF
+                    tar -czf rpxy-webui-${params.BUILD_VERSION}.tar.gz rpxy-webui-${params.BUILD_VERSION}/
+                    mv rpxy-webui-${params.BUILD_VERSION}.tar.gz rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SOURCES/
+                    cd rpxy-webui-${params.BUILD_VERSION}
+                    rpmbuild --define "_topdir `pwd`/rpmbuild" --define "_version ${params.BUILD_VERSION}" -bb rpmbuild/SPECS/rpxy-webui.spec
+                    """
+                }
+                archiveArtifacts artifacts: "rpxy-webui-${params.BUILD_VERSION}/rpmbuild/RPMS/noarch/rpxy-webui-${params.BUILD_VERSION}-1.el9.noarch.rpm", allowEmptyArchive: true
+            }
+        }
+        stage('Build DEB') {
+            agent {
+                kubernetes {
+                    inheritFrom 'default'
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    spec:
+                      containers:
+                      - name: deb-builder
+                        image: debian:stable-slim
+                        command:
+                        - cat
+                        tty: true
+                    """
+                }
+            }
+            steps {
+                unstash 'rpxy-webui-tar'
+                container('deb-builder') {
+                    sh """
+                    apt-get update && apt-get install --no-install-recommends -y dpkg-dev tar
+                    mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/
+                    tar -xzf rpxy-webui.tar.gz -C rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/
+                    mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/etc/apache2/conf-available/
+                    cat > rpxy-webui_${params.BUILD_VERSION}-1_all/etc/apache2/conf-available/rpxy-webui.conf <<EOF
+Alias /rpxy-webui /var/www/rpxy-webui/public/
+
+<Directory /var/www/rpxy-webui/public/>
+    Options SymLinksIfOwnerMatch
+    DirectoryIndex index.php
+    AllowOverride All
+    Require all granted
+
+    # PHP 8+
+#    <IfModule mod_php.c>
+#        php_admin_value upload_tmp_dir /var/lib/rpxy-webui/tmp/
+#    </IfModule>
+</Directory>
+EOF
+                    mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN
+                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/build/DEB/control rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/control
+                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/build/DEB/postinst rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
+                    rm -R rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/build/
+                    chmod 0775 rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
+                    mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/usr/share/doc/rpxy-webui
+                    ln -s rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/README.md rpxy-webui_${params.BUILD_VERSION}-1_all/usr/share/doc/rpxy-webui/README
+                    ln -s rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/LICENSE rpxy-webui_${params.BUILD_VERSION}-1_all/usr/share/doc/rpxy-webui/COPYRIGHT
+                    dpkg-deb --build --root-owner-group rpxy-webui_${params.BUILD_VERSION}-1_all
+                    """
+                }
+                archiveArtifacts artifacts: "rpxy-webui_${params.BUILD_VERSION}-1_all.deb", allowEmptyArchive: true
+            }
+        }
+    }
+}
