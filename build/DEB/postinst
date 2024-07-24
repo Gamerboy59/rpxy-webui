@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+
+a2enmod rewrite
+a2enconf rpxy-webui
+service apache2 restart
+
+if [ ! -f /var/www/rpxy-webui/database/database.sqlite ]; then
+    touch /var/www/rpxy-webui/database/database.sqlite
+    chown -R www-data:www-data /var/www/rpxy-webui/
+    php /var/www/rpxy-webui/artisan key:generate
+    php /var/www/rpxy-webui/artisan migrate --seed
+    echo "##########"
+    echo -e "\033[0;32mYou can reach rpxy-webui at:\033[0m"
+    echo -e "\033[1;32mhttp://<your_ip>:80/rpxy-webui\033[0m"
+    echo "##########"
+else
+    chown -R www-data:www-data /var/www/rpxy-webui/
+    php /var/www/rpxy-webui/artisan migrate
+fi
+
+exit 0
