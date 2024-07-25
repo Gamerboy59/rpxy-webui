@@ -1,7 +1,7 @@
 pipeline {
-    agent none  // Keine globale Agent-Zuweisung, wir definieren spezifische Agents in den Stages
+    agent none
     parameters {
-        string(name: 'BUILD_VERSION', defaultValue: '0.1', description: 'Build version for the RPM package')
+        string(name: 'BUILD_VERSION', defaultValue: '0.1', description: 'Build script for the distribution packages')
     }
     stages {
         stage('Preparation') {
@@ -69,6 +69,7 @@ pipeline {
                     mkdir rpxy-webui-${params.BUILD_VERSION}/conf/
                     tar -xzf rpxy-webui.tar.gz -C rpxy-webui-${params.BUILD_VERSION}/
                     mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/RPM/rpxy-webui.spec rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
+                    sed -i "s/^Version:.*/Version:        ${params.BUILD_VERSION}/" rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
                     rm -R rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/
                     mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/ rpxy-webui-${params.BUILD_VERSION}/data/
                     cat > rpxy-webui-${params.BUILD_VERSION}/conf/apache.conf <<EOF
@@ -137,6 +138,7 @@ Alias /rpxy-webui /var/www/rpxy-webui/public/
 EOF
                     mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN
                     mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/DEB/control rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/control
+                    sed -i "s/^Version:.*/Version: ${params.BUILD_VERSION}-1/" rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/control
                     mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/DEB/postinst rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
                     rm -R rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/
                     chmod 0775 rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
