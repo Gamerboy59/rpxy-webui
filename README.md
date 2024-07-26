@@ -49,7 +49,7 @@ You can install `rpxy-webui` as standalone container or in combination with `rpx
 
 You can run `rpxy-webui` on allmost all shared hostings. This is cost effective and can save you some management effort. However, you'll need to make the generated config file available to your local `rpxy` instance.
 
-[Installation (pre-compiled)](https://github.com/Gamerboy59/rpxy-webui/wiki/Installation-and-Update#installation-pre-compiled)
+[Installation (pre-compiled)](https://github.com/Gamerboy59/rpxy-webui/wiki/Installation-and-Update#installation-pre-compiled)  
 [Installation (self-compile)](https://github.com/Gamerboy59/rpxy-webui/wiki/Installation-and-Update#installation-self-compile)
 
 ## Contribution
