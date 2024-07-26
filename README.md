@@ -29,149 +29,28 @@ The rpxy-webui project aims to offer a comprehensive, intuitive, and responsive 
 
 
 
-## Installation (pre-compiled)
+## Installation and Update
 
-To install and run rpxy-webui using the pre-build packages, follow these steps:
+There are various ways to install `rpxy-webui` and update it. Each has its pros and cons but you can switch installation type with just minimal effort by copying the `database.sqlite` and `.env` file to the new installation.
 
-### Prerequisites
+### Distribution Package
 
-- **Webserver**: Apache 2.4.x with `mod_rewrite` enabled
-- **PHP**: >= 8.2
+The most easy way of using rpxy is to install the package manager version. It works just like any other system package and can be automatically updated. Also, this doesn't require the installation of an additional abstraction layer. The only requirement right now is that it's only compatible to apache24 but we look into adding more later or make this optional.
 
-1. **Download and extract latest release**
+[Installation Package](https://github.com/Gamerboy59/rpxy-webui/wiki/Installation-and-Update#distribution-package)
 
-   ```bash
-   curl -L https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui.tar.gz | tar -xzC /var/www/html/
-   cd /var/www/html/
-   ```
-   Fix file permissions depending on your system (e.g. `chown -R www-data:www-data /var/www/html/`).  
-   Do not forget to adopt the path in the commands above.
+### Container
 
-2. **Add empty database file**
-   ```bash
-   touch /var/www/html/database/database.sqlite
-   ```
+You can install `rpxy-webui` as standalone container or in combination with `rpxy` as a separate container. The latter is recommended if you have already setup a container. However, this comes with some limitations. The `rpxy` container needs to run in host-network mode and should not be switched outside the ip range to continue working with full configuration set.
 
-3. **Generate Application Key**
-   ```bash
-   php artisan key:generate
-   ```
+[Installation Container](https://github.com/Gamerboy59/rpxy-webui/wiki/Installation-and-Update#container)
 
-4. **Run Migrations and seed database**
-   ```bash
-   php artisan migrate --seed
-   ```
-   
-5. **Start rpxy server**
-   ```bash
-   ./target/release/rpxy -w -c /var/www/html/rpxy-webui/storage/app/config.toml
-   ```
-   You should preferably run rpxy in a background process or service unit.
+### Shared Hosting
 
-### Update
+You can run `rpxy-webui` on allmost all shared hostings. This is cost effective and can save you some management effort. However, you'll need to make the generated config file available to your local `rpxy` instance.
 
-1. **Download new files**
-   ```bash
-   curl -L https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui.tar.gz | tar -xzC /var/www/html/
-   cd /var/www/html/
-   ```
-
-2. **Generate Application Key**
-   ```bash
-   php artisan migrate
-   ```
-
-## Installation (self compile)
-
-To install and run rpxy-webui compiling it yourself, follow these steps:
-
-### Prerequisites
-
-- **PHP**: >= 8.2
-- **Composer**: Dependency Manager for PHP
-- **Node.js**: >= 18.x and npm
-- **MySQL**: >= 5.7
-
-### Step-by-Step Guide
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/Gamerboy59/rpxy-webui.git
-   cd rpxy-webui
-   ```
-
-2. **Install PHP Dependencies**
-   ```bash
-   composer install
-   ```
-
-3. **Install Node Dependencies**
-   ```bash
-   npm install
-   npm run build
-   ```
-
-4. **Environment Configuration**
-   ```bash
-   cp .env.example .env
-   ```
-   If you want to use MySQL, update the following environment variables in the .env file:
-   ```
-   DB_CONNECTION=mysql
-   DB_HOST=localhost
-   #DB_PORT=3306
-   DB_DATABASE=your_database
-   DB_USERNAME=your_username
-   DB_PASSWORD=your_password
-   ```
-
-5. **Generate Application Key**
-   ```bash
-   php artisan key:generate
-   ```
-
-6. **Run Migrations and seed database**
-   ```bash
-   php artisan migrate --seed
-   ```
-   
-7. **Start rpxy server**
-   ```bash
-   ./target/release/rpxy -w -c /var/www/html/rpxy-webui/storage/app/config.toml
-   ```
-   You should preferably run rpxy in a background process or service unit.
-
-8. **Start the Development Server** (optional)
-   ```bash
-   php artisan serve
-   ```
-   Make sure to only expose the /public/ path of your laravel webapp to the internet.
-
-### Update
-
-1. **Pull changes from Repository**
-
-   ```bash
-   cd /var/www/html/rpxy-webui
-   git pull
-   ```
-
-2. **Update PHP Dependencies**
-   ```bash
-   composer install
-   ```
-
-3. **Update Node Dependencies**
-   ```bash
-   npm upgrade
-   npm run build
-   ```
-
-4. **Run Migrations and seed database**
-   ```bash
-   php artisan migrate
-   ```
+[Installation (pre-compiled)](https://github.com/Gamerboy59/rpxy-webui/wiki/Installation-and-Update#installation-pre-compiled)
+[Installation (self-compile)](https://github.com/Gamerboy59/rpxy-webui/wiki/Installation-and-Update#installation-self-compile)
 
 ## Contribution
 
