@@ -1,0 +1,16 @@
+services:
+  rpxy-webui:
+    image: Gamerboy59/rpxy-webui:latest
+    volumes:
+      - config-volume:/var/www/html/storage/app/config.toml
+
+  rpxy:
+    image: jqtype/rpxy:latest-slim
+    environment:
+      - WATCH=true
+    volumes:
+      - config-volume:/rpxy/config/rpxy-config/rpxy.toml
+
+volumes:
+  config-volume:
+    driver: local
