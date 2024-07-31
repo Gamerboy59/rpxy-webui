@@ -40,6 +40,7 @@ pipeline {
                     """
                 }
                 archiveArtifacts artifacts: 'rpxy-webui.tar.gz, rpxy-webui.zip', allowEmptyArchive: true
+                fingerprint 'rpxy-webui.tar.gz, rpxy-webui.zip'
                 stash includes: 'rpxy-webui.tar.gz', name: 'rpxy-webui-tar'
             }
         }
@@ -94,6 +95,7 @@ EOF
                     """
                 }
                 archiveArtifacts artifacts: "rpxy-webui-${params.BUILD_VERSION}/rpmbuild/RPMS/noarch/rpxy-webui-${params.BUILD_VERSION}-1.el9.noarch.rpm", allowEmptyArchive: true
+                fingerprint "rpxy-webui-${params.BUILD_VERSION}/rpmbuild/RPMS/noarch/rpxy-webui-${params.BUILD_VERSION}-1.el9.noarch.rpm"
             }
         }
         stage('Build DEB') {
@@ -149,6 +151,7 @@ EOF
                     """
                 }
                 archiveArtifacts artifacts: "rpxy-webui_${params.BUILD_VERSION}-1_all.deb", allowEmptyArchive: true
+                fingerprint "rpxy-webui_${params.BUILD_VERSION}-1_all.deb"
             }
         }
     }
