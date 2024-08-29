@@ -59,7 +59,7 @@
                         <label for="setting-{{ $setting->key }}" class="form-label">{{ $setting->key }}</label>
                         <select class="form-control @error('settings.' . $setting->key . '.value') is-invalid @enderror" id="setting-{{ $setting->key }}" name="settings[{{ $setting->key }}][value]">
                             <option value="0" {{ old('settings.' . $setting->key . '.value', $setting->value) == 0 ? 'selected' : '' }} disabled>None</option>
-                            @if($setting->key == 'default_application')    
+                            @if($setting->key == 'default_app')    
                                 @foreach($validRustProxies as $rustProxy)
                                     <option value="{{ $rustProxy->id }}" {{ old('settings.' . $setting->key . '.value', $setting->value) == $rustProxy->id ? 'selected' : '' }}>
                                         {{ $rustProxy->server_name }}

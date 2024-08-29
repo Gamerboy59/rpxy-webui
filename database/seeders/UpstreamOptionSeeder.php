@@ -16,7 +16,7 @@ class UpstreamOptionSeeder extends Seeder
         $options = ['upgrade_insecure_requests', 'force_http11_upstream', 'force_http2_upstream', 'set_upstream_host', 'keep_original_host'];
 
         foreach ($options as $option) {
-            UpstreamOption::create(['option' => $option]);
+            UpstreamOption::firstOrCreate(['option' => $option]);
         }
     }
 }

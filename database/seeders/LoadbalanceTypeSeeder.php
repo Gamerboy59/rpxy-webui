@@ -16,7 +16,7 @@ class LoadbalanceTypeSeeder extends Seeder
         $types = ['none', 'round_robin', 'random', 'sticky'];
 
         foreach ($types as $type) {
-            LoadbalanceType::create(['name' => $type]);
+            LoadbalanceType::firstOrCreate(['name' => $type]);
         }
     }
 }

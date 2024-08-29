@@ -136,32 +136,41 @@ function searchFunction() {
               HTTPS Redirection
             </label>
           </div>
-          <div class="mb-3">
-            <label for="tls_cert_path" class="form-label">TLS Cert Path</label>
-            <input type="text" class="form-control @error('tls_cert_path') is-invalid @enderror" id="tls_cert_path" name="tls_cert_path" value="{{ old('tls_cert_path') }}">
-            @error('tls_cert_path')
-                <div class="invalid-feedback">
-                    {{ $message }}
-                </div>
-            @enderror
+          <div class="form-check form-switch mb-3">
+            <input type="hidden" name="letsencrypt_enabled" value="0">
+            <input class="form-check-input" type="checkbox" id="letsencrypt_enabled" name="letsencrypt_enabled" value="1" {{ old('letsencrypt_enabled') ? 'checked' : '' }} {{ old('ssl_enabled') ? '' : 'disabled' }}>
+            <label class="form-check-label" for="letsencrypt_enabled">
+                Let's Encrypt Enabled
+            </label>
           </div>
-          <div class="mb-3">
-            <label for="tls_cert_key_path" class="form-label">TLS Cert Key Path</label>
-            <input type="text" class="form-control @error('tls_cert_key_path') is-invalid @enderror" id="tls_cert_key_path" name="tls_cert_key_path" value="{{ old('tls_cert_key_path') }}">
-            @error('tls_cert_key_path')
-                <div class="invalid-feedback">
+          <div id="certificates" class="{{ old('ssl_enabled') && !old('letsencrypt_enabled') ? '' : 'd-none' }}">
+            <div class="mb-3">
+              <label for="tls_cert" class="form-label">TLS Certificate</label>
+              <textarea class="form-control @error('tls_cert') is-invalid @enderror" id="tls_cert" name="tls_cert" {{ old('ssl_enabled') && !old('letsencrypt_enabled') ? '' : 'disabled' }}>{{ old('tls_cert') }}</textarea>
+                @error('tls_cert_path')
+                  <div class="invalid-feedback">
                     {{ $message }}
-                </div>
-            @enderror
-          </div>
-          <div class="mb-3">
-            <label for="client_ca_cert_path" class="form-label">Client CA Cert Path</label>
-            <input type="text" class="form-control @error('client_ca_cert_path') is-invalid @enderror" id="client_ca_cert_path" name="client_ca_cert_path" value="{{ old('client_ca_cert_path') }}">
-            @error('client_ca_cert_path')
+                  </div>
+                @enderror
+            </div>
+            <div class="mb-3">
+              <label for="tls_cert_key" class="form-label">TLS Cert Key Path</label>
+              <textarea class="form-control @error('tls_cert_key') is-invalid @enderror" id="tls_cert_key" name="tls_cert_key" {{ old('ssl_enabled') && !old('letsencrypt_enabled') ? '' : 'disabled' }}>{{ old('tls_cert_key') }}</textarea>
+              @error('tls_cert_key_path')
                 <div class="invalid-feedback">
-                    {{ $message }}
+                  {{ $message }}
                 </div>
-            @enderror
+              @enderror
+            </div>
+            <div class="mb-3">
+              <label for="client_ca_cert" class="form-label">Client CA Cert Path</label>
+              <textarea class="form-control @error('tls_cert_key') is-invalid @enderror" id="client_ca_cert" name="client_ca_cert" {{ old('ssl_enabled') && !old('letsencrypt_enabled') ? '' : 'disabled' }}>{{ old('client_ca_cert') }}</textarea>
+              @error('client_ca_cert_path')
+                <div class="invalid-feedback">
+                  {{ $message }}
+                </div>
+              @enderror
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -198,6 +207,39 @@ function searchFunction() {
 </div>
 
 <script>
+const sslEnabledCheckbox = document.getElementById('ssl_enabled');
+const httpsRedirectionCheckbox = document.getElementById('https_redirection');
+const letsEncryptCheckbox = document.getElementById('letsencrypt_enabled');
+const certificatesDiv = document.getElementById('certificates');
+
+function disableCertFields() {
+    const isSSLEnabled = sslEnabledCheckbox.checked;
+    httpsRedirectionCheckbox.disabled = !isSSLEnabled;
+    letsEncryptCheckbox.disabled = !isSSLEnabled;
+
+    if (isSSLEnabled && !letsEncryptCheckbox.checked) {
+        certificatesDiv.classList.remove('d-none');
+        certificatesDiv.querySelectorAll('textarea').forEach(field => field.disabled = false);
+    } else {
+        certificatesDiv.querySelectorAll('textarea').forEach(field => field.disabled = true);
+    }
+}
+
+function hideCertFields() {
+    const isSSLEnabled = sslEnabledCheckbox.checked;
+
+    if (isSSLEnabled && !letsEncryptCheckbox.checked) {
+        certificatesDiv.classList.remove('d-none');
+        certificatesDiv.querySelectorAll('textarea').forEach(field => field.disabled = false);
+    } else {
+        certificatesDiv.classList.add('d-none');
+    }
+}
+
+sslEnabledCheckbox.addEventListener('change', disableCertFields);
+letsEncryptCheckbox.addEventListener('change', hideCertFields);
+</script>
+<script>
 const deleteProxyModal = document.getElementById('deleteProxyModal')
 if (deleteProxyModal) {
     deleteProxyModal.addEventListener('show.bs.modal', event => {
@@ -216,7 +258,7 @@ if (deleteProxyModal) {
   })
 }
 </script>
-@if($errors->has('app_name') || $errors->has('server_name') || $errors->has('ssl_enabled') || $errors->has('https_redirection') || $errors->has('tls_cert_path') || $errors->has('tls_cert_key_path') || $errors->has('client_ca_cert_path'))
+@if($errors->has('app_name') || $errors->has('server_name') || $errors->has('ssl_enabled') || $errors->has('https_redirection') || $errors->has('tls_cert') || $errors->has('tls_cert_key') || $errors->has('client_ca_cert'))
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var addProxyModal = new Modal(document.getElementById('addProxyModal'), {

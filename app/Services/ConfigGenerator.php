@@ -64,11 +64,23 @@ class ConfigGenerator
             $configContent .= "\n### {$rustProxy->app_name} ###\n";
             $configContent .= "[apps.{$rustProxy->app_name}]\n";
             $configContent .= "server_name = '{$rustProxy->server_name}'\n";
-            $configContent .= "tls = { https_redirection = " . ($rustProxy->https_redirection ? 'true' : 'false') . ", tls_cert_path = '{$rustProxy->tls_cert_path}', tls_cert_key_path = '{$rustProxy->tls_cert_key_path}'";
-            if ($rustProxy->client_ca_cert_path) {
-                $configContent .= ", client_ca_cert_path = '{$rustProxy->client_ca_cert_path}'";
+
+            // SSL Certificate config
+            if ($rustProxy->ssl_enabled) {
+                $configContent .= "tls = { https_redirection = " . ($rustProxy->https_redirection ? 'true' : 'false');
+                if ($rustProxy->letsencrypt_enabled) {
+                    $configContent .= ", acme = true";
+                } else {
+                    $configContent .= ", tls_cert_path = '" . Storage::path($rustProxy->tls_cert_path) . "', tls_cert_key_path = '" . Storage::path($rustProxy->tls_cert_key_path) . "'";
+                    if ($rustProxy->client_ca_cert_path) {
+                        $configContent .= ", client_ca_cert_path = '" . Storage::path($rustProxy->client_ca_cert_path) . "'";
+                    }
+                }
+            
+                $configContent .= " }\n";
             }
-            $configContent .= " }\n";
+
+
 
             foreach ($rustProxy->upstreams as $upstream) {
                 $configContent .= "\n[[apps.{$rustProxy->app_name}.reverse_proxy]]\n";

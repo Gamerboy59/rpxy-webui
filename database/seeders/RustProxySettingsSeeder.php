@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\RustProxySetting;
 
 class RustProxySettingsSeeder extends Seeder
 {
@@ -12,7 +13,7 @@ class RustProxySettingsSeeder extends Seeder
      */
     public function run(): void
     {
-        \DB::table('rust_proxy_settings')->insert([
+        $settings = [
             [
                 'section' => 'general',
                 'key' => 'config_file_path',
@@ -33,7 +34,7 @@ class RustProxySettingsSeeder extends Seeder
             ],
             [
                 'section' => 'general',
-                'key' => 'default_application',
+                'key' => 'default_app',
                 'value' => '0',
                 'type' => 'select'
             ],
@@ -132,7 +133,32 @@ class RustProxySettingsSeeder extends Seeder
                 'key' => 'max_cache_each_size_on_memory',
                 'value' => '4096',
                 'type' => 'number'
+            ],
+            [
+                'section' => 'experimental.acme',
+                'key' => 'dir_url',
+                'value' => 'https://acme-v02.api.letsencrypt.org/directory',
+                'type' => 'text'
+            ],
+            [
+                'section' => 'experimental.acme',
+                'key' => 'email',
+                'value' => 'admin@' . (preg_match("/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/", gethostname()) ? $hostname : 'example.com'),
+                'type' => 'text'
+            ],
+            [
+                'section' => 'experimental.acme',
+                'key' => 'registry_path',
+                'value' => './acme_registry',
+                'type' => 'text'
             ]
-        ]);
+        ];
+
+        foreach ($settings as $setting) {
+            RustProxySetting::firstOrCreate(
+                ['section' => $setting['section'], 'key' => $setting['key']], // Search criteria
+                ['value' => $setting['value'], 'type' => $setting['type']] // // Updateable value or create new dataset of them including key
+            );
+        }
     }
 }

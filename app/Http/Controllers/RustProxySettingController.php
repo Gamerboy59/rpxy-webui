@@ -48,7 +48,7 @@ class RustProxySettingController extends Controller
                         $fail('The value must be a number.');
                     } elseif ($type == 'text' && !is_string($value)) {
                         $fail('The value must be a string.');
-                    } elseif ($key == 'default_application') {
+                    } elseif ($key == 'default_app') {
                         // Check if RustProxy exists
                         $rustProxyExists = RustProxy::where('id', $value)->exists();
                         // Check if RustProxy has at least one Upstream

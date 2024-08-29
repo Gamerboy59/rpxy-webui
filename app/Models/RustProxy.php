@@ -10,7 +10,7 @@ class RustProxy extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['app_name', 'server_name', 'ssl_enabled', 'https_redirection', 'tls_cert_path', 'tls_cert_key_path', 'client_ca_cert_path'];
+    protected $fillable = ['app_name', 'server_name', 'ssl_enabled', 'https_redirection', 'letsencrypt_enabled', 'tls_cert_path', 'tls_cert_key_path', 'client_ca_cert_path'];
 
     public function upstreams(): HasMany
     {

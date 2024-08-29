@@ -24,6 +24,7 @@ class RustProxyFactory extends Factory
             'server_name' => fake()->domainName(),
             'ssl_enabled' => fake()->boolean(),
             'https_redirection' => fake()->boolean(),
+            'letsencrypt_enabled' => fake()->boolean(),
             'tls_cert_path' => fake()->filePath(),
             'tls_cert_key_path' => fake()->filePath(),
             'client_ca_cert_path' => fake()->filePath()
