@@ -71,6 +71,7 @@ pipeline {
                     tar -xzf rpxy-webui.tar.gz -C rpxy-webui-${params.BUILD_VERSION}/
                     mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/RPM/rpxy-webui.spec rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
                     sed -i "s/^Version:.*/Version:        ${params.BUILD_VERSION}/" rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
+                    sed -i "s/^Source0:.*/Source0:        rpxy-webui-${params.BUILD_VERSION}.tar.gz/" rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
                     rm -R rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/
                     mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/ rpxy-webui-${params.BUILD_VERSION}/data/
                     cat > rpxy-webui-${params.BUILD_VERSION}/conf/apache.conf <<EOF

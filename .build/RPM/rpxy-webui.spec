@@ -5,7 +5,7 @@ Summary:        WebApp to manage rpxy instance configuration
 
 License:        GPL-3.0
 URL:            https://github.com/Gamerboy59/rpxy-webui
-Source0:        https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui-0.1.tar.gz
+Source0:        rpxy-webui-0.1.tar.gz
 BuildArch:      noarch
 
 Requires:       httpd, php-fpm >= 8.2, php-mbstring >= 8.2, php-curl >= 8.2, php-pdo >= 8.2, php-xml >= 8.2, php-pecl-zip >= 1.19
