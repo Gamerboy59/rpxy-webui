@@ -73,6 +73,9 @@ semanage fcontext -d -t httpd_sys_rw_content_t '%{_localstatedir}/www/rpxy-webui
 semanage fcontext -d -t httpd_sys_rw_content_t '%{_localstatedir}/www/rpxy-webui/bootstrap/cache'
 
 %changelog
+* Thu Aug 29 2024 Gamerboy59 - 0.2
+- Adding ACME support and manual certificate import.
+- It is compatible with rpxy 0.9.x or newer.
 * Sun Jul 21 2024 Gamerboy59 - 0.1
 - This is the first release.
 - It is compatible with rpxy 0.8.x or newer.
