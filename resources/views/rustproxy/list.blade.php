@@ -258,7 +258,7 @@ if (deleteProxyModal) {
   })
 }
 </script>
-@if($errors->has('app_name') || $errors->has('server_name') || $errors->has('ssl_enabled') || $errors->has('https_redirection') || $errors->has('tls_cert') || $errors->has('tls_cert_key') || $errors->has('client_ca_cert'))
+@if($errors->has('app_name') || $errors->has('server_name') || $errors->has('ssl_enabled') || $errors->has('https_redirection') || $errors->has('letsencrypt_enabled') || $errors->has('tls_cert') || $errors->has('tls_cert_key') || $errors->has('client_ca_cert'))
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var addProxyModal = new Modal(document.getElementById('addProxyModal'), {

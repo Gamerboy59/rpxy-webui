@@ -157,9 +157,9 @@ class UpstreamController extends Controller
     {
         $upstream->delete();
 
-        $defaultApp = RustProxySetting::where('key', 'default_application')->value('value');
+        $defaultApp = RustProxySetting::where('key', 'default_app')->value('value');
         if ($upstream->rustProxy->upstreams()->count() == 0 && $defaultApp == $upstream->rustProxy->id) {
-            RustProxySetting::where('key', 'default_application')->update(['value' => '0']);
+            RustProxySetting::where('key', 'default_app')->update(['value' => '0']);
             $additional_success_msg = ' No more upstreams available to this proxy. Resetting default proxy setting.';
         }
 
