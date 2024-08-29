@@ -6,7 +6,7 @@ RUN sed -i '\!</VirtualHost>!i \        <Directory /var/www/html>\n             
 
 RUN a2enmod rewrite
 
-RUN curl -SL https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui.tar.gz | tar -xzC /var/www/html/
+RUN curl -SL https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui.tar.gz | tar --strip-components=1 -xzC /var/www/html/
 
 RUN touch /var/www/html/database/database.sqlite
 
