@@ -1,5 +1,5 @@
 Package: rpxy-webui
-Version: 0.1-1
+Version: @BUILD_VERSION@-1
 Maintainer: Gamerboy59 <none@blackhole.com>
 Homepage: https://github.com/Gamerboy59/rpxy-webui
 Architecture: all

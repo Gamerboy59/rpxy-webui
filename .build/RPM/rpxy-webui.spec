@@ -1,11 +1,11 @@
 Name:           rpxy-webui
-Version:        0.1
+Version:        @BUILD_VERSION@
 Release:        1%{?dist}
 Summary:        WebApp to manage rpxy instance configuration
 
 License:        GPL-3.0
 URL:            https://github.com/Gamerboy59/rpxy-webui
-Source0:        rpxy-webui-0.1.tar.gz
+Source0:        @Source0@
 BuildArch:      noarch
 
 Requires:       httpd, php-fpm >= 8.2, php-mbstring >= 8.2, php-curl >= 8.2, php-pdo >= 8.2, php-xml >= 8.2, php-pecl-zip >= 1.19
@@ -19,14 +19,14 @@ This rpm installs rpxy-webui from github sources into /usr/share/rpxy-webui/ and
 %autosetup
 
 %install
-rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/www/
-cp -r data/ $RPM_BUILD_ROOT%{_localstatedir}/www/rpxy-webui/
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/
-cp conf/apache.conf $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/rpxy-webui.conf
+rm -rf %{buildroot}
+mkdir -p %{buildroot}%{_localstatedir}/www/
+cp -r data/ %{buildroot}%{_localstatedir}/www/rpxy-webui/
+mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
+cp conf/apache.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/rpxy-webui.conf
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %files
 %license %{_localstatedir}/www/rpxy-webui/LICENSE
@@ -64,7 +64,7 @@ if [ $1 -eq 1 ] ; then
     service php-fpm restart
     service httpd restart
 elif [ $1 -gt 1 ] ; then
-    php %{_localstatedir}/www/rpxy-webui/artisan migrate
+    php %{_localstatedir}/www/rpxy-webui/artisan migrate --seed
 fi
 
 %postun

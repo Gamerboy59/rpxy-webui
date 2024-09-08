@@ -17,7 +17,7 @@ if [ ! -f /var/www/rpxy-webui/database/database.sqlite ]; then
     echo "##########"
 else
     chown -R www-data:www-data /var/www/rpxy-webui/
-    php /var/www/rpxy-webui/artisan migrate
+    php /var/www/rpxy-webui/artisan migrate --seed
 fi
 
 exit 0

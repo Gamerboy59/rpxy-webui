@@ -1,7 +1,7 @@
 pipeline {
     agent none
     parameters {
-        string(name: 'BUILD_VERSION', defaultValue: '0.1', description: 'Build script for the distribution packages')
+        string(name: 'BUILD_VERSION', defaultValue: '', description: 'Build version for the distribution packages')
     }
     stages {
         stage('Preparation') {
@@ -39,8 +39,7 @@ pipeline {
                     zip -r rpxy-webui.zip rpxy-webui
                     """
                 }
-                archiveArtifacts artifacts: 'rpxy-webui.tar.gz, rpxy-webui.zip', allowEmptyArchive: true
-                fingerprint 'rpxy-webui.tar.gz, rpxy-webui.zip'
+                archiveArtifacts artifacts: 'rpxy-webui.tar.gz, rpxy-webui.zip', allowEmptyArchive: false, fingerprint: true
                 stash includes: 'rpxy-webui.tar.gz', name: 'rpxy-webui-tar'
             }
         }
@@ -64,16 +63,26 @@ pipeline {
             steps {
                 unstash 'rpxy-webui-tar'
                 container('rpm-builder') {
+                    // Prepare build environment
                     sh """
                     dnf install -y rpmdevtools tar
-                    mkdir -p rpxy-webui-${params.BUILD_VERSION}/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-                    mkdir rpxy-webui-${params.BUILD_VERSION}/conf/
+                    mkdir -p rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+                    mkdir -p rpxy-webui-${params.BUILD_VERSION}
                     tar -xzf rpxy-webui.tar.gz -C rpxy-webui-${params.BUILD_VERSION}/
-                    mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/RPM/rpxy-webui.spec rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
-                    sed -i "s/^Version:.*/Version:        ${params.BUILD_VERSION}/" rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
-                    sed -i "s/^Source0:.*/Source0:        rpxy-webui-${params.BUILD_VERSION}.tar.gz/" rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SPECS/rpxy-webui.spec
-                    rm -R rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/
+                    mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/RPM/rpxy-webui.spec rpmbuild/SPECS/rpxy-webui.spec
+                    rm -rf rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/.build/
                     mv rpxy-webui-${params.BUILD_VERSION}/rpxy-webui/ rpxy-webui-${params.BUILD_VERSION}/data/
+                    """
+
+                    // Replace @BUILD_VERSION@ in control file with actual version
+                    sh "sed -i 's/@BUILD_VERSION@/${params.BUILD_VERSION}/' rpmbuild/SPECS/rpxy-webui.spec"
+
+                    // Replace @Source0@ in control file with actual version
+                    sh "sed -i 's/@Source0@/rpxy-webui-${params.BUILD_VERSION}.tar.gz/' rpmbuild/SPECS/rpxy-webui.spec"
+
+                    // Add apache2 conf
+                    sh """
+                    mkdir -p rpxy-webui-${params.BUILD_VERSION}/conf/
                     cat > rpxy-webui-${params.BUILD_VERSION}/conf/apache.conf <<EOF
 Alias /rpxy-webui /var/www/rpxy-webui/public/
 
@@ -89,14 +98,15 @@ Alias /rpxy-webui /var/www/rpxy-webui/public/
 #    </IfModule>
 </Directory>
 EOF
-                    tar -czf rpxy-webui-${params.BUILD_VERSION}.tar.gz rpxy-webui-${params.BUILD_VERSION}/
-                    mv rpxy-webui-${params.BUILD_VERSION}.tar.gz rpxy-webui-${params.BUILD_VERSION}/rpmbuild/SOURCES/
-                    cd rpxy-webui-${params.BUILD_VERSION}
-                    rpmbuild --define "_topdir `pwd`/rpmbuild" --define "_version ${params.BUILD_VERSION}" -bb rpmbuild/SPECS/rpxy-webui.spec
+                    """
+
+                    // Build the RPM package
+                    sh """
+                    tar -czf rpmbuild/SOURCES/rpxy-webui-${params.BUILD_VERSION}.tar.gz rpxy-webui-${params.BUILD_VERSION}/
+                    rpmbuild --define '_topdir ${WORKSPACE}/rpmbuild' --define '_version ${params.BUILD_VERSION}' -bb rpmbuild/SPECS/rpxy-webui.spec
                     """
                 }
-                archiveArtifacts artifacts: "rpxy-webui-${params.BUILD_VERSION}/rpmbuild/RPMS/noarch/rpxy-webui-${params.BUILD_VERSION}-1.el9.noarch.rpm", allowEmptyArchive: true
-                fingerprint "rpxy-webui-${params.BUILD_VERSION}/rpmbuild/RPMS/noarch/rpxy-webui-${params.BUILD_VERSION}-1.el9.noarch.rpm"
+                archiveArtifacts artifacts: "rpmbuild/RPMS/noarch/rpxy-webui-${params.BUILD_VERSION}-1.el9.noarch.rpm", allowEmptyArchive: false, fingerprint: true
             }
         }
         stage('Build DEB') {
@@ -119,10 +129,23 @@ EOF
             steps {
                 unstash 'rpxy-webui-tar'
                 container('deb-builder') {
+                    // Prepare build environment
                     sh """
                     apt-get update && apt-get install --no-install-recommends -y dpkg-dev tar
                     mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/
                     tar -xzf rpxy-webui.tar.gz -C rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/
+                    mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN
+                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/DEB/control rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/control
+                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/DEB/postinst rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
+                    chmod 0755 rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
+                    rm -R rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/
+                    """
+
+                    // Replace @BUILD_VERSION@ in control file with actual version
+                    sh "sed -i 's/@BUILD_VERSION@/${params.BUILD_VERSION}/' rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/control"
+
+                    // Add apache2 config
+                    sh """
                     mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/etc/apache2/conf-available/
                     cat > rpxy-webui_${params.BUILD_VERSION}-1_all/etc/apache2/conf-available/rpxy-webui.conf <<EOF
 Alias /rpxy-webui /var/www/rpxy-webui/public/
@@ -139,20 +162,19 @@ Alias /rpxy-webui /var/www/rpxy-webui/public/
 #    </IfModule>
 </Directory>
 EOF
-                    mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN
-                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/DEB/control rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/control
-                    sed -i "s/^Version:.*/Version: ${params.BUILD_VERSION}-1/" rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/control
-                    mv rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/DEB/postinst rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
-                    rm -R rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/.build/
-                    chmod 0775 rpxy-webui_${params.BUILD_VERSION}-1_all/DEBIAN/postinst
+                    """
+
+                    // Link doc files
+                    sh """
                     mkdir -p rpxy-webui_${params.BUILD_VERSION}-1_all/usr/share/doc/rpxy-webui
                     ln -s rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/README.md rpxy-webui_${params.BUILD_VERSION}-1_all/usr/share/doc/rpxy-webui/README
                     ln -s rpxy-webui_${params.BUILD_VERSION}-1_all/var/www/rpxy-webui/LICENSE rpxy-webui_${params.BUILD_VERSION}-1_all/usr/share/doc/rpxy-webui/COPYRIGHT
-                    dpkg-deb --build --root-owner-group rpxy-webui_${params.BUILD_VERSION}-1_all
                     """
+
+                    // Build the DEB package
+                    sh "dpkg-deb --build --root-owner-group rpxy-webui_${params.BUILD_VERSION}-1_all"
                 }
-                archiveArtifacts artifacts: "rpxy-webui_${params.BUILD_VERSION}-1_all.deb", allowEmptyArchive: true
-                fingerprint "rpxy-webui_${params.BUILD_VERSION}-1_all.deb"
+                archiveArtifacts artifacts: "rpxy-webui_${params.BUILD_VERSION}-1_all.deb", allowEmptyArchive: false, fingerprint: true
             }
         }
     }
