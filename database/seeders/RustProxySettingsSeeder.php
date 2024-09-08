@@ -113,7 +113,7 @@ class RustProxySettingsSeeder extends Seeder
             [
                 'section' => 'experimental.cache',
                 'key' => 'cache_dir',
-                'value' => './cache',
+                'value' => '/tmp/rpxy/.cache',
                 'type' => 'text'
             ],
             [
