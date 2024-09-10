@@ -113,7 +113,7 @@ class RustProxySettingsSeeder extends Seeder
             [
                 'section' => 'experimental.cache',
                 'key' => 'cache_dir',
-                'value' => '/tmp/rpxy/.cache',
+                'value' => (is_dir('/run/rpxy/') ? '/run/rpxy/' : (is_dir($d = rtrim(shell_exec('find /tmp/systemd-private-*/tmp -type d -name "rpxy" 2>/dev/null | head -n 1'))) ? "$d/" : '/tmp/rpxy/')) . '.cache',
                 'type' => 'text'
             ],
             [
@@ -149,7 +149,7 @@ class RustProxySettingsSeeder extends Seeder
             [
                 'section' => 'experimental.acme',
                 'key' => 'registry_path',
-                'value' => './acme_registry',
+                'value' => (is_dir('/etc/rpxy/') ? '/etc/rpxy/' : '.') . 'acme_registry',
                 'type' => 'text'
             ]
         ];
