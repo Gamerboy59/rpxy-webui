@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>rpxy - Reverse Proxy & WebUI</title>
+    <style>
+        :root {
+            --primary-color: #A9CCE3;
+            --secondary-color: #45B39D;
+            --background-color: #f9f9f9;
+            --text-color: #333;
+            --box-bg-color: #ffffff;
+            --box-border-color: #e0e0e0;
+            --subheading-color: #9B59B6;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0 0;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo-title {
+            display: flex;
+            align-items: center;
+        }
+        .logo {
+            max-width: 100px;
+            height: auto;
+            margin-right: 20px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            white-space: nowrap;
+        }
+        h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: normal;
+        }
+        nav {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 10px 0;
+            margin-top: 10px;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: flex-start;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li:first-child {
+            margin-left: 0;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+        }
+        main {
+            flex: 1;
+            padding: 2rem 0;
+        }
+        .download-section {
+            margin-bottom: 2rem;
+        }
+        h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        h4 {
+            color: var(--subheading-color);
+        }
+        .separator {
+            height: 3px;
+            background: linear-gradient(to right, var(--secondary-color) 70%, transparent);
+            margin-bottom: 1rem;
+        }
+        .repo-box {
+            background-color: var(--box-bg-color);
+            border: 1px solid var(--box-border-color);
+            border-radius: 4px;
+            padding: 1rem;
+            position: relative;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+        }
+        .repo-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary-color);
+        }
+        .copy-btn:hover {
+            color: var(--secondary-color);
+        }
+        .download-btn {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+        .download-btn:hover {
+            background-color: #27ae60;
+        }
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+        footer p {
+            margin: 5px 0;
+        }
+        footer a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(69, 179, 157, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(69, 179, 157, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(69, 179, 157, 0); }
+        }
+        .pulse {
+            animation: pulse 0.5s;
+        }
+        .package-install {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .package-install .repo-box {
+            flex: 1 1 calc(50% - 10px);
+            min-width: 300px;
+        }
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .logo-title {
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+            }
+            .logo {
+                margin-bottom: 10px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            nav ul {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            nav ul li {
+                margin: 5px 0;
+            }
+            .download-btn {
+                display: block;
+                margin: 10px 0;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo-title">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23A9CCE3'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'%3Erpxy%3C/text%3E%3C/svg%3E" alt="rpxy Logo" class="logo">
+                <div>
+                    <h1>Reverse Proxy & WebUI</h1>
+                </div>
+            </div>
+        </div>
+        <nav>
+            <div class="container">
+                <ul>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#downloads">Downloads</a></li>
+                    <li><a href="#installation">Package Installation</a></li>
+                    <li><a href="#documentation">Documentation</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div class="container">
+            <section id="about" class="download-section">
+                <h3>About</h3>
+                <div class="separator"></div>
+                <h4>rpxy</h4>
+                <p>A simple and ultrafast reverse-proxy serving multiple domain names with TLS termination, written in Rust. It provides highly efficient request forwarding and load balancing for modern web applications. It's designed with performance and scalability in mind, making it ideal for both small and large-scale deployments.</p>
+                <h4>rpxy-webui</h4>
+                <p>The rpxy-webui allows system administrators to easily configure and manage the reverse proxy through a modern, intuitive web interface. Built with PHP and Laravel, the web UI simplifies tasks such as proxy and upstream configuration or SSL certificate management.</p>
+            </section>
+
+            <section id="downloads" class="download-section">
+                <h3>Downloads</h3>
+                <div class="separator"></div>
+                <p>You can either download the latest version directly or install the packages conveniently through our package server (recommended). The download archives are suiteable for shared hosting where you don't have privileged access to the system. You can download the latest version here:</p>
+
+                <a href="https://github.com/junkurihara/rust-rpxy/releases/latest/download/rpxy-aarch64-unknown-linux-gnu.tar.gz" class="download-btn">rpxy</a>
+                <a href="https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui.zip" class="download-btn">rpxy-webui</a>
+            </section>
+
+            <section id="installation" class="download-section">
+                <h3>Package Installation (Recommended)</h3>
+                <div class="separator"></div>
+                <p>Follow these steps to set up the repository and install rpxy and rpxy-webui. Please note that Debian 12, Ubuntu 24.04 or Enterprise Linux 9 are the minimum required versions for their respective distributions.</p>
+
+                <h4>Debian/Ubuntu</h4>
+                <p>For Debian-based systems, including Ubuntu and its derivatives, follow these steps:</p>
+                <div class="repo-box">
+                    <button class="copy-btn" data-clipboard-target="#debian-install-full">
+                        Copy
+                    </button>
+                    <pre id="debian-install-full">
+sudo apt-get update
+sudo apt-get install -y curl gnupg
+curl -fsSL https://repo.gamerboy59.dev/repo/KEY.gpg | sudo gpg --dearmor -o /usr/share/keyrings/rpxy-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/rpxy-archive-keyring.gpg] https://repo.gamerboy59.dev/repo stable main" | sudo tee /etc/apt/sources.list.d/rpxy.list
+sudo apt-get update -y
+sudo apt-get install -y rpxy rpxy-webui</pre>
+                </div>
+
+                <h4>RedHat/CentOS</h4>
+                <p>For Red Hat Enterprise Linux, CentOS, and other derivatives like Rocky or Alma, use these commands:</p>
+                <div class="repo-box">
+                    <button class="copy-btn" data-clipboard-target="#redhat-install-full">
+                        Copy
+                    </button>
+                    <pre id="redhat-install-full">
+sudo rpm --import https://repo.gamerboy59.dev/repo/KEY.gpg
+sudo tee /etc/yum.repos.d/rpxy.repo << EOF
+[rpxy]
+name=rpxy Repository
+baseurl=https://repo.gamerboy59.dev/repo
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.gamerboy59.dev/repo/KEY.gpg
+EOF
+sudo dnf install -y rpxy rpxy-webui</pre>
+                </div>
+            </section>
+
+            <section id="documentation" class="download-section">
+                <h3>Documentation</h3>
+                <div class="separator"></div>
+                <p>If you encounter any issues or have questions, please don't hesitate to open an issue on our GitHub repositories:</p>
+                <ul>
+                    <li><a href="https://github.com/junkurihara/rust-rpxy/issues">rpxy Issues</a></li>
+                    <li><a href="https://github.com/Gamerboy59/rpxy-webui/issues">rpxy-webui Issues</a></li>
+                </ul>
+                <p>You can also reach out to our community support channels for additional assistance.</p>
+            </section>
+        </div>
+    </main>
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 rpxy project. All rights reserved.</p>
+            <p>
+                <a href="https://github.com/junkurihara/rust-rpxy">rpxy GitHub</a>
+                <a href="https://github.com/Gamerboy59/rpxy-webui">rpxy-webui GitHub</a>
+                <a href="repo">Repository</a>
+            </p>
+        </div>
+    </footer>
+    <script>
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-clipboard-target');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                const textToCopy = targetElement.textContent.trim();
+
+                // Check if Clipboard API is supported (requires HTTPS)
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    // Use Clipboard API
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        this.textContent = 'Copied!';
+                        targetElement.parentElement.classList.add('pulse');
+                        setTimeout(() => {
+                            this.textContent = 'Copy';
+                            targetElement.parentElement.classList.remove('pulse');
+                        }, 1500);
+                    }, (err) => {
+                        console.error('Failed to copy text: ', err);
+                    });
+                } else {
+                    // Fallback methode
+                    const textarea = document.createElement('textarea');
+                    textarea.value = textToCopy;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        this.textContent = 'Copied!';
+                        targetElement.parentElement.classList.add('pulse');
+                        setTimeout(() => {
+                            this.textContent = 'Copy';
+                            targetElement.parentElement.classList.remove('pulse');
+                        }, 1500);
+                    } catch (err) {
+                        console.error('Fallback: Failed to copy text', err);
+                    }
+                    document.body.removeChild(textarea);
+                }
+            } else {
+                console.error('Target element not found: ', targetId);
+            }
+        });
+    });
+    </script>
+</body>
+</html>
