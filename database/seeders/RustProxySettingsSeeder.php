@@ -143,7 +143,7 @@ class RustProxySettingsSeeder extends Seeder
             [
                 'section' => 'experimental.acme',
                 'key' => 'email',
-                'value' => 'admin@' . (preg_match("/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/", gethostname()) ? $hostname : 'example.com'),
+                'value' => 'admin@' . (preg_match("/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/", gethostname()) ? gethostname() : 'example.com'),
                 'type' => 'text'
             ],
             [
