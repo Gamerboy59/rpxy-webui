@@ -104,9 +104,12 @@ EOF
                     sh """
                     tar -czf rpmbuild/SOURCES/rpxy-webui-${params.BUILD_VERSION}.tar.gz rpxy-webui-${params.BUILD_VERSION}/
                     rpmbuild --define '_topdir ${WORKSPACE}/rpmbuild' --define '_version ${params.BUILD_VERSION}' -bb rpmbuild/SPECS/rpxy-webui.spec
+
+                    # Move RPM to root for archiving
+                    mv rpmbuild/RPMS/noarch/rpxy-webui-${params.BUILD_VERSION}-1.el9.noarch.rpm .
                     """
                 }
-                archiveArtifacts artifacts: "rpmbuild/RPMS/noarch/rpxy-webui-${params.BUILD_VERSION}-1.el9.noarch.rpm", allowEmptyArchive: false, fingerprint: true
+                archiveArtifacts artifacts: "rpxy-webui-${params.BUILD_VERSION}-1.el9.noarch.rpm", allowEmptyArchive: false, fingerprint: true
             }
         }
         stage('Build DEB') {
