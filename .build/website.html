@@ -261,8 +261,8 @@
                     <pre id="debian-install-full">
 sudo apt-get update
 sudo apt-get install -y curl gnupg
-curl -fsSL https://repo.gamerboy59.dev/repo/KEY.gpg | sudo gpg --dearmor -o /usr/share/keyrings/rpxy-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/rpxy-archive-keyring.gpg] https://repo.gamerboy59.dev/repo stable main" | sudo tee /etc/apt/sources.list.d/rpxy.list
+curl -fsSL https://repo.gamerboy59.dev/public-key.gpg -o /usr/share/keyrings/rpxy-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/rpxy-archive-keyring.gpg] https://repo.gamerboy59.dev/debian stable main" | sudo tee /etc/apt/sources.list.d/rpxy.list
 sudo apt-get update -y
 sudo apt-get install -y rpxy rpxy-webui</pre>
                 </div>
@@ -274,15 +274,15 @@ sudo apt-get install -y rpxy rpxy-webui</pre>
                         Copy
                     </button>
                     <pre id="redhat-install-full">
-sudo rpm --import https://repo.gamerboy59.dev/repo/KEY.gpg
 sudo tee /etc/yum.repos.d/rpxy.repo << EOF
 [rpxy]
 name=rpxy Repository
-baseurl=https://repo.gamerboy59.dev/repo
+baseurl=https://repo.gamerboy59.dev/rpm
 enabled=1
 gpgcheck=1
-gpgkey=https://repo.gamerboy59.dev/repo/KEY.gpg
+gpgkey=https://repo.gamerboy59.dev/public-key.gpg
 EOF
+sudo dnf update
 sudo dnf install -y rpxy rpxy-webui</pre>
                 </div>
             </section>
