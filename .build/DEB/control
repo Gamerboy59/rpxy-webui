@@ -3,7 +3,8 @@ Version: @BUILD_VERSION@-1
 Maintainer: Gamerboy59 <none@blackhole.com>
 Homepage: https://github.com/Gamerboy59/rpxy-webui
 Architecture: all
-Depends: apache2, php (>= 2:8.2) | php-fpm (>= 2:8.2), php-cli (>= 2:8.2), php-curl (>= 2:8.2), php-intl (>= 2:8.2), php-json (>= 2:8.2), php-mbstring (>= 2:8.2), php-sqlite3 (>= 2:8.2), php-xml (>= 2:8.2), php-zip (>= 2:8.2)
+Pre-Depends: debconf (>= 1.5) | debconf-2.0
+Depends: rpxy, php (>= 2:8.2) | php-fpm (>= 2:8.2), php-cli (>= 2:8.2), php-curl (>= 2:8.2), php-intl (>= 2:8.2), php-json (>= 2:8.2), php-mbstring (>= 2:8.2), php-sqlite3 (>= 2:8.2), php-xml (>= 2:8.2), php-zip (>= 2:8.2)
 Recommends: php-gd (>= 2:8.2)
 Priority: optional
 Section: admin
