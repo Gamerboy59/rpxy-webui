@@ -1,0 +1,264 @@
+pipeline {
+    agent {
+        kubernetes {
+            yaml """
+            apiVersion: v1
+            kind: Pod
+            spec:
+              containers:
+              - name: debian
+                image: debian:stable-slim
+                command:
+                - cat
+                tty: true
+              - name: rockylinux
+                image: rockylinux:9
+                command:
+                - cat
+                tty: true
+            """
+        }
+    }
+    stages {
+        stage('Trigger Downstream Jobs and Collect Artifacts') {
+            steps {
+                script {
+                    parallel(
+                        "rpxy": {
+                            def rpxyJob = build job: 'rpxy', wait: true, propagate: true
+                            copyArtifacts(projectName: 'rpxy', selector: specific("${rpxyJob.number}"), filter: '**/*.deb, **/*.rpm')
+                        },
+                        "rpxy-webui": {
+                            def rpxyWebuiJob = build job: 'rpxy-webui', parameters: [string(name: 'BUILD_VERSION', value: '0.2')], wait: true, propagate: true
+                            copyArtifacts(projectName: 'rpxy-webui', selector: specific("${rpxyWebuiJob.number}"), filter: '**/*.deb, **/*.rpm')
+                        }
+                    )
+                }
+            }
+        }
+
+        stage('Prepare Environments') {
+            parallel {
+                stage('Prepare Debian Environment') {
+                    steps {
+                        container('debian') {
+                            sh '''
+                            apt-get update -y
+                            apt-get install -y --no-install-recommends gpg dpkg-dev lftp gnupg2 pinentry-curses ca-certificates
+                            mkdir -p ~/.gnupg
+                            chmod 700 ~/.gnupg
+                            echo "pinentry-program /usr/bin/pinentry-curses" > ~/.gnupg/gpg-agent.conf
+                            echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+                            gpg-agent --daemon
+                            '''
+                        }
+                    }
+                }
+                stage('Prepare Rocky Linux Environment') {
+                    steps {
+                        container('rockylinux') {
+                            sh '''
+                            dnf update -y
+                            dnf install -y rpm-sign createrepo lftp gnupg2 pinentry ca-certificates
+                            mkdir -p ~/.gnupg
+                            chmod 700 ~/.gnupg
+                            echo "pinentry-program /usr/bin/pinentry" > ~/.gnupg/gpg-agent.conf
+                            echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+                            echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+                            gpg-agent --daemon
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Sign DEB and RPM files') {
+            parallel {
+                stage('Sign DEB files') {
+                    steps {
+                        container('debian') {
+                            withCredentials([file(credentialsId: 'repo-server_signing-key', variable: 'SIGNING_KEY'), string(credentialsId: 'repo-server_signing-key-pass', variable: 'SIGNING_KEY_PASS')]) {
+                                sh '''
+                                export GPG_TTY=$(tty)
+                                gpg --batch --import "${SIGNING_KEY}"
+
+                                # Debug: List imported keys
+                                echo "Imported GPG keys:"
+                                gpg --list-keys
+
+                                for deb in *.deb; do
+                                    if [ -f "$deb" ]; then
+                                        echo "Signing $deb"
+                                        echo "${SIGNING_KEY_PASS}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 -b -a "${deb}"
+                                    else
+                                        echo "Skipping non-file: $deb"
+                                    fi
+                                done
+                                '''
+                            }
+                        }
+                    }
+                }
+                stage('Sign RPM files') {
+                    steps {
+                        container('rockylinux') {
+                            withCredentials([file(credentialsId: 'repo-server_signing-key', variable: 'SIGNING_KEY'), string(credentialsId: 'repo-server_signing-key-pass', variable: 'SIGNING_KEY_PASS')]) {
+                                sh '''
+                                # Set up GPG
+                                export GPG_TTY=$(tty)
+
+                                # Import the signing key
+                                gpg --batch --import "${SIGNING_KEY}"
+
+                                # Debug: List imported keys
+                                echo "Imported GPG keys:"
+                                gpg --list-keys
+
+                                # Set up RPM macros
+                                echo "%_gpg_name $(gpg --with-colons --list-keys | awk -F: '/^pub/ { print $5 }')" > ~/.rpmmacros
+                                echo "%__gpg_sign_cmd %{__gpg} gpg --batch --pinentry-mode loopback --passphrase %{_gpg_pass} --no-tty -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" >> ~/.rpmmacros
+
+                                # Sign RPM files
+                                for rpm in *.rpm; do
+                                    if [ -f "$rpm" ]; then
+                                        echo "Signing $rpm"
+                                        rpm --define "_gpg_pass ${SIGNING_KEY_PASS}" --resign "${rpm}"
+                                    else
+                                        echo "Skipping non-file: $rpm"
+                                    fi
+                                done
+                                '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Generate Repository Metadata') {
+            parallel {
+                stage('Generate Debian Metadata') {
+                    steps {
+                        container('debian') {
+                            withCredentials([string(credentialsId: 'repo-server_signing-key-pass', variable: 'SIGNING_KEY_PASS')]) {
+                                sh '''
+                                # Set up directory structure
+                                mkdir -p debian/dists/stable/main/binary-amd64
+                                mkdir -p debian/dists/stable/main/binary-all
+
+                                # Move packages to appropriate directories
+                                mv *_amd64.deb debian/dists/stable/main/binary-amd64/
+                                mv *_all.deb debian/dists/stable/main/binary-all/
+
+                                # Generate Packages files
+                                dpkg-scanpackages debian/dists/stable/main/binary-amd64 > debian/dists/stable/main/binary-amd64/Packages
+                                gzip -k -f debian/dists/stable/main/binary-amd64/Packages
+                                dpkg-scanpackages debian/dists/stable/main/binary-all > debian/dists/stable/main/binary-all/Packages
+                                gzip -k -f debian/dists/stable/main/binary-all/Packages
+
+                                # Extract version from .deb file
+                                DEB_VERSION=$(dpkg-deb -f $(ls debian/dists/stable/main/binary-*/**.deb | head -n 1) Version)
+                                if [ -z "$DEB_VERSION" ]; then
+                                    DEB_VERSION=$(ls debian/dists/stable/main/binary-*/**.deb | head -n 1 | grep -oP '(?<=_)[^_]+(?=_)')
+                                fi
+
+                                # Generate Release file
+                                cat > debian/dists/stable/Release <<EOF
+Suite: stable
+Component: main
+Origin: https://github.com/Gamerboy59/rpxy-webui
+Label: rpxy and rpxy-webui
+Architecture: amd64 all
+Date: $(date -Ru)
+Version: ${DEB_VERSION}
+Changelogs: https://github.com/Gamerboy59/rpxy-webui/releases
+EOF
+
+                                # Generate hashes for all files
+                                (
+                                    for file in $(find debian/dists/stable -type f | sort); do
+                                        echo "${file#debian/dists/stable/}"
+                                        md5sum "$file" | cut -d' ' -f1
+                                        sha1sum "$file" | cut -d' ' -f1
+                                        sha256sum "$file" | cut -d' ' -f1
+                                        sha512sum "$file" | cut -d' ' -f1
+                                        stat -c%s "$file"
+                                    done
+                                ) | awk '
+                                {
+                                    file = $0
+                                    getline md5; getline sha1; getline sha256; getline sha512; getline size
+                                    md5_list = md5_list " " md5 " " size " " file "\\n"
+                                    sha1_list = sha1_list " " sha1 " " size " " file "\\n"
+                                    sha256_list = sha256_list " " sha256 " " size " " file "\\n"
+                                    sha512_list = sha512_list " " sha512 " " size " " file "\\n"
+                                }
+                                END {
+                                    print "MD5Sum:"
+                                    printf "%s", md5_list
+                                    print "SHA1:"
+                                    printf "%s", sha1_list
+                                    print "SHA256:"
+                                    printf "%s", sha256_list
+                                    print "SHA512:"
+                                    printf "%s", sha512_list
+                                }' >> debian/dists/stable/Release
+
+                                export GPG_TTY=$(tty)
+                                echo "${SIGNING_KEY_PASS}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 -abs -o debian/dists/stable/Release.gpg debian/dists/stable/Release
+                                echo "${SIGNING_KEY_PASS}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --clearsign -o debian/dists/stable/InRelease debian/dists/stable/Release
+                                '''
+                            }
+                        }
+                    }
+                }
+                stage('Generate RPM Repository Metadata') {
+                    steps {
+                        container('rockylinux') {
+                            withCredentials([string(credentialsId: 'repo-server_signing-key-pass', variable: 'SIGNING_KEY_PASS')]) {
+                                sh '''
+                                mkdir -p rpm/el9/{x86_64,noarch}
+                                mv *.x86_64.rpm rpm/el9/x86_64/
+                                mv *.noarch.rpm rpm/el9/noarch/
+                                createrepo rpm/el9
+                                export GPG_TTY=$(tty)
+                                echo "${SIGNING_KEY_PASS}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor rpm/el9/repodata/repomd.xml
+                                '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Upload to Repository') {
+            parallel {
+                stage('Upload DEB Repository') {
+                    steps {
+                        container('debian') {
+                            withCredentials([usernamePassword(credentialsId: 'repo-server_ftp-credentials', usernameVariable: 'FTP_USER', passwordVariable: 'FTP_PASSWORD'), string(credentialsId: 'repo-server_ftp-server-address', variable: 'FTP_SERVER')]) {
+                                sh '''
+                                lftp -c "open -u $FTP_USER,$FTP_PASSWORD $FTP_SERVER; \
+                                         mirror -R debian /debian"
+                                '''
+                            }
+                        }
+                    }
+                }
+                stage('Upload RPM Repository') {
+                    steps {
+                        container('rockylinux') {
+                            withCredentials([usernamePassword(credentialsId: 'repo-server_ftp-credentials', usernameVariable: 'FTP_USER', passwordVariable: 'FTP_PASSWORD'), string(credentialsId: 'repo-server_ftp-server-address', variable: 'FTP_SERVER')]) {
+                                sh '''
+                                lftp -c "open -u $FTP_USER,$FTP_PASSWORD $FTP_SERVER; \
+                                         mirror -R rpm /rpm"
+                                '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
