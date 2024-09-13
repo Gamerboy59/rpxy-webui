@@ -8,7 +8,7 @@ URL:            https://github.com/Gamerboy59/rpxy-webui
 Source0:        @Source0@
 BuildArch:      noarch
 
-Requires:       httpd, php-fpm >= 8.2, php-mbstring >= 8.2, php-curl >= 8.2, php-pdo >= 8.2, php-xml >= 8.2, php-pecl-zip >= 1.19
+Requires:       rpxy, php-fpm >= 8.2, php-mbstring >= 8.2, php-curl >= 8.2, php-pdo >= 8.2, php-xml >= 8.2, php-pecl-zip >= 1.19
 Requires(post): python3-policycoreutils
 Requires(postun): python3-policycoreutils
 
