@@ -12,7 +12,7 @@ pipeline {
                 - cat
                 tty: true
               - name: rockylinux
-                image: rockylinux:9
+                image: rockylinux/rockylinux:10
                 command:
                 - cat
                 tty: true
@@ -158,9 +158,9 @@ pipeline {
                                 gzip -k -f debian/dists/stable/main/binary-all/Packages
 
                                 # Extract version from .deb file
-                                DEB_VERSION=$(dpkg-deb -f $(ls debian/dists/stable/main/binary-*/**.deb | head -n 1) Version)
+                                DEB_VERSION=$(dpkg-deb -f $(find debian/dists/stable/main/binary-* -name "*.deb" | head -n 1) Version 2>/dev/null)
                                 if [ -z "$DEB_VERSION" ]; then
-                                    DEB_VERSION=$(ls debian/dists/stable/main/binary-*/**.deb | head -n 1 | grep -oP '(?<=_)[^_]+(?=_)')
+                                    DEB_VERSION=$(find debian/dists/stable/main/binary-* -name "*.deb" | head -n 1 | grep -oP '(?<=_)[^_]+(?=_)' || echo "1.0.0")
                                 fi
 
                                 # Generate Release file
@@ -218,12 +218,53 @@ EOF
                         container('rockylinux') {
                             withCredentials([string(credentialsId: 'repo-server_signing-key-pass', variable: 'SIGNING_KEY_PASS')]) {
                                 sh '''
+                                # Create directory structure for both EL9 and EL10
                                 mkdir -p rpm/el9/{x86_64,noarch}
-                                mv *.x86_64.rpm rpm/el9/x86_64/
-                                mv *.noarch.rpm rpm/el9/noarch/
-                                createrepo rpm/el9
+                                mkdir -p rpm/el10/{x86_64,noarch}
+
+                                # Sort RPM files by EL version
+                                for rpm in *.rpm; do
+                                    if [ -f "$rpm" ]; then
+                                        if [[ "$rpm" == *".el9."* ]]; then
+                                            echo "Moving EL9 package: $rpm"
+                                            if [[ "$rpm" == *".x86_64.rpm" ]]; then
+                                                mv "$rpm" rpm/el9/x86_64/
+                                            elif [[ "$rpm" == *".noarch.rpm" ]]; then
+                                                mv "$rpm" rpm/el9/noarch/
+                                            fi
+                                        elif [[ "$rpm" == *".el10."* ]]; then
+                                            echo "Moving EL10 package: $rpm"
+                                            if [[ "$rpm" == *".x86_64.rpm" ]]; then
+                                                mv "$rpm" rpm/el10/x86_64/
+                                            elif [[ "$rpm" == *".noarch.rpm" ]]; then
+                                                mv "$rpm" rpm/el10/noarch/
+                                            fi
+                                        else
+                                            echo "Warning: Unknown EL version for package: $rpm - skipping"
+                                        fi
+                                    fi
+                                done
+
+                                # Create repositories for EL9 and EL10
                                 export GPG_TTY=$(tty)
-                                echo "${SIGNING_KEY_PASS}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor rpm/el9/repodata/repomd.xml
+                                
+                                # EL9 repository
+                                if [ "$(find rpm/el9 -name '*.rpm' | wc -l)" -gt 0 ]; then
+                                    echo "Creating EL9 repository"
+                                    createrepo rpm/el9
+                                    echo "${SIGNING_KEY_PASS}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor rpm/el9/repodata/repomd.xml
+                                else
+                                    echo "No EL9 packages found, skipping EL9 repository creation"
+                                fi
+
+                                # EL10 repository
+                                if [ "$(find rpm/el10 -name '*.rpm' | wc -l)" -gt 0 ]; then
+                                    echo "Creating EL10 repository"
+                                    createrepo rpm/el10
+                                    echo "${SIGNING_KEY_PASS}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor rpm/el10/repodata/repomd.xml
+                                else
+                                    echo "No EL10 packages found, skipping EL10 repository creation"
+                                fi
                                 '''
                             }
                         }
