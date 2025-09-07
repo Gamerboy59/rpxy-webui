@@ -140,6 +140,17 @@
         .download-btn:hover {
             background-color: #27ae60;
         }
+        .system-requirements {
+            background-color: #f0f8ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .system-requirements h5 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
         footer {
             background-color: var(--primary-color);
             color: white;
@@ -234,6 +245,10 @@
                 <div class="separator"></div>
                 <h4>rpxy</h4>
                 <p>A simple and ultrafast reverse-proxy serving multiple domain names with TLS termination, written in Rust. It provides highly efficient request forwarding and load balancing for modern web applications. It's designed with performance and scalability in mind, making it ideal for both small and large-scale deployments.</p>
+                
+                <h4>rpxy-l4</h4>
+                <p>A reverse proxy for the layer-4 (TCP+UDP) with protocol multiplexer, written in Rust. rpxy-l4 provides efficient traffic forwarding at the transport layer with advanced protocol multiplexing capabilities, offering superior performance for applications requiring low-latency connections and high throughput.</p>
+                
                 <h4>rpxy-webui</h4>
                 <p>The rpxy-webui allows system administrators to easily configure and manage the reverse proxy through a modern, intuitive web interface. Built with PHP and Laravel, the web UI simplifies tasks such as proxy and upstream configuration or SSL certificate management.</p>
             </section>
@@ -241,16 +256,23 @@
             <section id="downloads" class="download-section">
                 <h3>Downloads</h3>
                 <div class="separator"></div>
-                <p>You can either download the latest version directly or install the packages conveniently through our package server (recommended). The download archives are suiteable for shared hosting where you don't have privileged access to the system. You can download the latest version here:</p>
+                <p>You can either download the latest version directly or install the packages conveniently through our package server (recommended). The download archives are suitable for shared hosting where you don't have privileged access to the system. You can download the latest version here:</p>
 
-                <a href="https://github.com/junkurihara/rust-rpxy/releases/latest/download/rpxy-aarch64-unknown-linux-gnu.tar.gz" class="download-btn">rpxy</a>
+                <a href="https://github.com/junkurihara/rust-rpxy/releases/latest/download/rpxy-x86_64-unknown-linux-gnu.tar.gz" class="download-btn">rpxy</a>
+                <a href="https://github.com/junkurihara/rust-rpxy-l4/releases/latest/download/rpxy-l4-x86_64-unknown-linux-musl.tar.gz" class="download-btn">rpxy-l4</a>
                 <a href="https://github.com/Gamerboy59/rpxy-webui/releases/latest/download/rpxy-webui.zip" class="download-btn">rpxy-webui</a>
             </section>
 
             <section id="installation" class="download-section">
                 <h3>Package Installation (Recommended)</h3>
                 <div class="separator"></div>
-                <p>Follow these steps to set up the repository and install rpxy and rpxy-webui. Please note that Debian 12, Ubuntu 24.04 or Enterprise Linux 9 are the minimum required versions for their respective distributions.</p>
+                <p>Follow these steps to set up the repository and install rpxy, rpxy-l4, and rpxy-webui.</p>
+
+                <div class="system-requirements">
+                    <h5>System Requirements</h5>
+                    <p><strong>Minimum:</strong> Debian 12, Ubuntu 24.04, or Enterprise Linux 9</p>
+                    <p><strong>Recommended:</strong> Debian 13, Ubuntu 24.04, or Enterprise Linux 10</p>
+                </div>
 
                 <h4>Debian/Ubuntu</h4>
                 <p>For Debian-based systems, including Ubuntu and its derivatives, follow these steps:</p>
@@ -264,7 +286,7 @@ sudo apt-get install -y curl gnupg
 curl -fsSL https://repo.gamerboy59.dev/public-key.gpg -o /usr/share/keyrings/rpxy-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/rpxy-archive-keyring.gpg] https://repo.gamerboy59.dev/debian stable main" | sudo tee /etc/apt/sources.list.d/rpxy.list
 sudo apt-get update -y
-sudo apt-get install -y rpxy rpxy-webui</pre>
+sudo apt-get install -y rpxy rpxy-l4 rpxy-webui</pre>
                 </div>
 
                 <h4>RedHat/CentOS</h4>
@@ -283,7 +305,7 @@ gpgcheck=1
 gpgkey=https://repo.gamerboy59.dev/public-key.gpg
 EOF
 sudo dnf update -y
-sudo dnf install -y rpxy rpxy-webui</pre>
+sudo dnf install -y rpxy rpxy-l4 rpxy-webui</pre>
                 </div>
             </section>
 
@@ -293,6 +315,7 @@ sudo dnf install -y rpxy rpxy-webui</pre>
                 <p>If you encounter any issues or have questions, please don't hesitate to open an issue on our GitHub repositories:</p>
                 <ul>
                     <li><a href="https://github.com/junkurihara/rust-rpxy/issues">rpxy Issues</a></li>
+                    <li><a href="https://github.com/junkurihara/rust-rpxy-l4/issues">rpxy-l4 Issues</a></li>
                     <li><a href="https://github.com/Gamerboy59/rpxy-webui/issues">rpxy-webui Issues</a></li>
                 </ul>
                 <p>You can also reach out to our community support channels for additional assistance.</p>
@@ -304,6 +327,7 @@ sudo dnf install -y rpxy rpxy-webui</pre>
             <p>&copy; 2024 rpxy project. All rights reserved.</p>
             <p>
                 <a href="https://github.com/junkurihara/rust-rpxy">rpxy GitHub</a>
+                <a href="https://github.com/junkurihara/rust-rpxy-l4">rpxy-l4 GitHub</a>
                 <a href="https://github.com/Gamerboy59/rpxy-webui">rpxy-webui GitHub</a>
                 <a href="https://repo.gamerboy59.dev">Repository</a>
             </p>
